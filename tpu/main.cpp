@@ -71,5 +71,8 @@ int main(int argc, char* argv[]) {
     // Initialize the TPU itself
     tpu::TPU tpu;
 
+    // Dump registers
+    tpu.dumpRegs();
+
     return EXIT_SUCCESS;
 }
