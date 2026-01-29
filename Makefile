@@ -29,6 +29,7 @@ tasm: $(BIN_TASM)
 $(BIN_TASM):
 	@echo "Symlinking the TPU Assembler..."
 	@ln -sf $(shell pwd)/tasm/tasm.py $(BIN_TASM)
+	@chmod +x $(BIN_TASM)
 	@echo "✅ Done."
 
 ################################################################
