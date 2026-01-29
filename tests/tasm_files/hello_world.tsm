@@ -1,0 +1,6 @@
+section .data
+    
+section .text
+    main:
+        ; Load something to memory
+        hlt
