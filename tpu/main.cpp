@@ -39,19 +39,19 @@ int main(int argc, char* argv[]) {
     }
 
     // Verify file exists
-    if (!std::filesystem::exists(argv[1])) {
+    if (!std::filesystem::exists(argv[1]) || !std::filesystem::is_regular_file(argv[1])) {
         CERR << "Invalid TPU image path: " << argv[1] << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    if (std::filesystem::file_size(argv[1]) > MAX_MEMORY_ALLOC) {
+        CERR << "TPU image exceeds memory: " << argv[1] << std::endl;
         return EXIT_FAILURE;
     }
 
     std::ifstream handle( argv[1], std::ios::binary );
     if (!handle.is_open()) {
         CERR << "Failed to open TPU image: " << argv[1] << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    if (std::filesystem::file_size(argv[1]) > MAX_MEMORY_ALLOC) {
-        CERR << "TPU image exceeds memory: " << argv[1] << std::endl;
         return EXIT_FAILURE;
     }
 
