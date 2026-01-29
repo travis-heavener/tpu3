@@ -36,4 +36,5 @@ $(BIN_TASM):
 ################################################################
 
 init:
+	@mkdir bin
 	@echo "Environment configured."
