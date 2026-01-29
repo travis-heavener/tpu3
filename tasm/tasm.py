@@ -24,6 +24,7 @@ if __name__ == "__main__":
         f.write(b"\xEF\xBE\x00\x00")
 
         f.seek(0x0000BEEF)
-        f.write(b"\xEF\xBE\x22\x00")
+        f.write(b"\x00")
 
     print("Successfully built TPU image at:", argv[1])
+

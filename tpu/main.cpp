@@ -10,6 +10,8 @@
 
 #define CERR std::cerr << "Error:\n  "
 
+using namespace tpu;
+
 // Loads a TPU binary image from a file to memory
 void loadImageToMemory(tpu::Memory& memory, std::ifstream& handle) {
     // Read entire file to memory (guaranteed to be smaller than memory)
@@ -61,8 +63,15 @@ int main(int argc, char* argv[]) {
     // Initialize the TPU itself
     tpu::TPU tpu;
 
-    // Start the clock
-    tpu.start(memory);
+    try {
+       // Start the clock
+        tpu.start(memory);
+    } catch (tpu::Exception& e) {
+        std::cerr << e.what() << std::endl;
+
+        // Dump registers
+        tpu.dumpRegs();
+    }
 
     // Dump registers
     tpu.dumpRegs();

@@ -35,6 +35,9 @@ namespace tpu {
             // Starts the clock, runs until hlt instruction
             void start(Memory& mem);
 
+            // Executes the next instruction
+            void execute(Memory& mem);
+
             // Debug dumps all registers to stdout
             void dumpRegs() const;
         private:

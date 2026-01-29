@@ -6,28 +6,47 @@
 #include <stdexcept>
 #include <string>
 
-typedef uint64_t u64;
-typedef uint32_t u32;
-typedef uint16_t u16;
-typedef uint8_t  u8;
+namespace tpu {
 
-// String to uints
-// Ref: https://en.cppreference.com/w/cpp/utility/from_chars.html
-template <typename uint>
-uint stou(const std::string& s) {
-    uint n;
-    auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), n, 10);
+    typedef uint64_t u64;
+    typedef uint32_t u32;
+    typedef uint16_t u16;
+    typedef uint8_t  u8;
 
-    if (ec == std::errc::invalid_argument)
-        throw std::invalid_argument("Invalid number passed to stou");
+    // String to uints
+    // Ref: https://en.cppreference.com/w/cpp/utility/from_chars.html
+    template <typename uint>
+    uint stou(const std::string& s) {
+        uint n;
+        auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), n, 10);
 
-    if (ec == std::errc::result_out_of_range)
-        throw std::invalid_argument("Value out of range in stou");
+        if (ec == std::errc::invalid_argument)
+            throw std::invalid_argument("Invalid number passed to stou");
 
-    if (ptr != s.data() + s.size())
-        throw std::invalid_argument("Trailing characters passed to stou");
+        if (ec == std::errc::result_out_of_range)
+            throw std::invalid_argument("Value out of range in stou");
 
-    return n;
+        if (ptr != s.data() + s.size())
+            throw std::invalid_argument("Trailing characters passed to stou");
+
+        return n;
+    }
+
+    // Exceptions
+    class Exception : public std::runtime_error {
+        public:
+            Exception() : std::runtime_error("") {};
+            virtual const char* what() const noexcept { return "Base TPUException"; };
+    };
+
+    class InvalidInstructionException : public Exception {
+        public:
+            InvalidInstructionException(const std::string msg) : msg("InvalidInstructionException: " + msg) {};
+            const char* what() const noexcept { return msg.c_str(); };
+        private:
+            std::string msg;
+    };
+
 }
 
 #endif

@@ -1,6 +1,9 @@
-#include "tpu.hpp"
-
 #include <cstdio>
+#include <stdexcept>
+#include <string>
+
+#include "tpu.hpp"
+#include "inst.hpp"
 
 namespace tpu {
     
@@ -20,6 +23,26 @@ namespace tpu {
     void TPU::start(Memory& mem) {
         // Move IP to first instruction
         this->IP.dword = mem.dword(0).dword;
+
+        // Begin execution
+        this->execute(mem);
+    }
+
+    // Reads the next instruction at IP
+    void TPU::execute(Memory& mem) {
+        while (true) {
+            // Read next instruction byte
+            inst instruction = static_cast<inst>( this->readNextByte(mem) );
+
+            // Switch based on instruction
+            switch (instruction) {
+                case inst::HLT: return;
+                default:
+                    throw tpu::InvalidInstructionException( std::to_string(static_cast<u8>(instruction)) );
+            }
+
+            // TODO - sleep between cycles
+        }
     }
 
     // Reads the next byte at the IP
