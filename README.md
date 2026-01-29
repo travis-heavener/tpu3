@@ -4,7 +4,7 @@
 ## About
 The 2026 revival of the TPU (Travis's Processing Unit), this time with a more robust testing suite, CI/CD pipeline, and more comprehensive development methodology.
 
-The TPU is an 8086-inspired, emulated CPU that has historically run on a 16-bit architecture.
+The TPU is an 8086-inspired, emulated, little-endian CPU that has historically run on a 16-bit architecture.
 However this time around, the TPU will be a **32-bit processor**.
 This change will fundamentally improve the scalability of programs that can be run on the TPU.
 
@@ -23,5 +23,5 @@ The last version of the TPU (see [TPU2](https://github.com/travis-heavener/tpu2)
 
 The TPU3 project consists of a few modular pieces, each compiled from the GNU Makefile.
 
-- `tpu/`: Contains all the source for the TPU itself.
-- `tasm/`: Contains the source for the assembler, which takes `.tsm` files and generates a binary `.tpu` file to run on the TPU.
+- `tpu/`: Source for the TPU itself (see [TASM.md](docs/TASM.md))
+- `tasm/`: Source for the TPU Assembler (see [TPU.md](docs/TPU.md))
