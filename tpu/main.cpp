@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "memory.hpp"
+#include "tpu.hpp"
 
 #define MAX_MEMORY_ALLOC 1024 * 1024 * 4 // 4 MiB
 
@@ -28,9 +29,6 @@ void loadImageToMemory(tpu::Memory& memory, std::ifstream& handle) {
         handle.read( reinterpret_cast<char*>(memory.data() + memPtr), stepSize );
         memPtr += stepSize;
     } while (handle.gcount() > 0);
-
-    // Debug - test for bytes at first instruction 0x0022BEEF
-    std::printf("First 4 Instruction Bytes: 0x%08x\n", memory.dword(startInstAddr).dword);
 }
 
 int main(int argc, char* argv[]) {
@@ -69,6 +67,9 @@ int main(int argc, char* argv[]) {
 
     // Close the file
     handle.close();
+
+    // Initialize the TPU itself
+    tpu::TPU tpu;
 
     return EXIT_SUCCESS;
 }
