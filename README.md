@@ -13,3 +13,10 @@ What's changed since TPU2:
 - Incrementally expanding the scope (not jumping into a C-style language/kernel/OS all at once)
 - Properly using a single branch for development
 - Restricting deployments to Linux only (not Windows, for now?)
+
+## Directory Layout
+
+The TPU3 project consists of a few modular pieces, each compiled from the GNU Makefile.
+
+- `tpu/`: Contains all the source for the TPU itself.
+- `tasm/`: Contains the source for the assembler, which takes `.tsm` files and generates a binary `.tpu` file to run on the TPU.
