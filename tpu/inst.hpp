@@ -9,6 +9,9 @@ namespace tpu {
         HLT = 0x0
     };
 
+    // Instruction handlers
+    // void execute...
+
 }
 
 #endif
