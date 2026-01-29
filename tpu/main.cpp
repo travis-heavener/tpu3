@@ -12,18 +12,8 @@
 
 // Loads a TPU binary image from a file to memory
 void loadImageToMemory(tpu::Memory& memory, std::ifstream& handle) {
-    // Load address of first instruction
-    u8 buf[4] = {0};
-    handle.read(reinterpret_cast<char*>(buf), 4);
-    u32 startInstAddr = (static_cast<u32>(buf[3]) << 24) |
-                        (static_cast<u32>(buf[2]) << 16) |
-                        (static_cast<u32>(buf[1]) << 8) |
-                        static_cast<u32>(buf[0]);
-
-    std::printf("Address of First Instruction: 0x%08x\n", startInstAddr);
-
     // Read entire file to memory (guaranteed to be smaller than memory)
-    u32 memPtr = 4; // <-- start after first instruction address
+    u32 memPtr = 0;
     const u32 stepSize = 1024;
     do {
         handle.read( reinterpret_cast<char*>(memory.data() + memPtr), stepSize );
@@ -70,6 +60,9 @@ int main(int argc, char* argv[]) {
 
     // Initialize the TPU itself
     tpu::TPU tpu;
+
+    // Start the clock
+    tpu.start(memory);
 
     // Dump registers
     tpu.dumpRegs();

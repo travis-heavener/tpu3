@@ -38,7 +38,10 @@ namespace tpu {
             // Debug dumps all registers to stdout
             void dumpRegs() const;
         private:
-            /* TODO - implement flags as wide registers */
+            Byte readNextByte(Memory& mem);
+            Word readNextWord(Memory& mem);
+            DWord readNextDWord(Memory& mem);
+
             reg32 EAX; // Extended accumulator
             reg32 EBX; // Extended base
             reg32 ECX; // Extended counter
