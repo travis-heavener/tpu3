@@ -32,6 +32,23 @@ namespace tpu {
         return n;
     }
 
+    // Flags helpers
+
+    // Returns the parity of the given byte(s)
+    template <typename uint>
+    bool getParity(const uint n) {
+        const int bits = sizeof(uint) * 8;
+        bool parity = false;
+
+        for (int i = 0; i < bits; ++i) {
+            if ((n >> i) & 1) {
+                parity = !parity;
+            }
+        }
+
+        return parity;
+    }
+
     // Exceptions
     class Exception : public std::runtime_error {
         public:
