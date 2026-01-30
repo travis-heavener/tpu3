@@ -2,6 +2,7 @@
 #define __TPU_INST_HPP
 
 #include "tools.hpp"
+#include "tpu.hpp"
 
 namespace tpu {
 
@@ -9,8 +10,8 @@ namespace tpu {
         HLT = 0x0
     };
 
-    // Instruction handlers
-    // void execute...
+    // Instruction handler methods
+    void executeMOV(TPU&, Memory&);
 
 }
 

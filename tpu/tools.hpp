@@ -13,6 +13,17 @@ namespace tpu {
     typedef uint16_t u16;
     typedef uint8_t  u8;
 
+    // Register codes for instructions
+    enum class RegCode : u8 {
+        EAX = 0x00, AX  = 0x01, AH = 0x02, AL = 0x03,
+        EBX = 0x04, BX  = 0x05, BH = 0x06, BL = 0x07,
+        ECX = 0x08, CX  = 0x09, CH = 0x0A, CL = 0x0B,
+        EDX = 0x0C, DX  = 0x0D, DH = 0x0E, DL = 0x0F,
+
+        IP = 0x10,  SP = 0x11,  BP = 0x12,
+        SI = 0x13,  DI = 0x14
+    };
+
     // String to uints
     // Ref: https://en.cppreference.com/w/cpp/utility/from_chars.html
     template <typename uint>
@@ -59,6 +70,14 @@ namespace tpu {
     class InvalidInstructionException : public Exception {
         public:
             InvalidInstructionException(const std::string msg) : msg("InvalidInstructionException: " + msg) {};
+            const char* what() const noexcept { return msg.c_str(); };
+        private:
+            std::string msg;
+    };
+
+    class InvalidMODBitsException : public Exception {
+        public:
+            InvalidMODBitsException(const std::string msg) : msg("InvalidMODBitsException: " + msg) {};
             const char* what() const noexcept { return msg.c_str(); };
         private:
             std::string msg;
