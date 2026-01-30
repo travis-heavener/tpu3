@@ -52,9 +52,9 @@ namespace tpu {
             void setReg16(const RegCode, const u16);
             void setReg32(const RegCode, const u32);
 
-            u8 getReg8(const RegCode);
-            u16 getReg16(const RegCode);
-            u32 getReg32(const RegCode);
+            u8 getReg8(const RegCode) const;
+            u16 getReg16(const RegCode) const;
+            u32 getReg32(const RegCode) const;
 
             // Debug dumps all registers to stdout
             void dumpRegs() const;

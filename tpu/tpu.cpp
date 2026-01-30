@@ -68,97 +68,93 @@ namespace tpu {
     // Register getters/setters
     void TPU::setReg8(const RegCode rc, const u8 v) {
         switch (rc) {
-            case RegCode::AL:
-                this->EAX.lreg16.lbyte = v;
-                break;
-            case RegCode::AH:
-                this->EAX.lreg16.hbyte = v;
-                break;
-            case RegCode::BL:
-                this->EBX.lreg16.lbyte = v;
-                break;
-            case RegCode::BH:
-                this->EBX.lreg16.hbyte = v;
-                break;
-            case RegCode::CL:
-                this->ECX.lreg16.lbyte = v;
-                break;
-            case RegCode::CH:
-                this->ECX.lreg16.hbyte = v;
-                break;
-            case RegCode::DL:
-                this->EDX.lreg16.lbyte = v;
-                break;
-            case RegCode::DH:
-                this->EDX.lreg16.hbyte = v;
-                break;
+            case RegCode::AL: this->EAX.lreg16.lbyte = v; break;
+            case RegCode::AH: this->EAX.lreg16.hbyte = v; break;
+            case RegCode::BL: this->EBX.lreg16.lbyte = v; break;
+            case RegCode::BH: this->EBX.lreg16.hbyte = v; break;
+            case RegCode::CL: this->ECX.lreg16.lbyte = v; break;
+            case RegCode::CH: this->ECX.lreg16.hbyte = v; break;
+            case RegCode::DL: this->EDX.lreg16.lbyte = v; break;
+            case RegCode::DH: this->EDX.lreg16.hbyte = v; break;
             default:
-                throw InvalidRegCodeException("reg8: " + std::to_string(static_cast<int>(rc)));
+                throw InvalidRegCodeException("setReg8: " + std::to_string(static_cast<int>(rc)));
         }
     }
     
     void TPU::setReg16(const RegCode rc, const u16 v) {
         switch (rc) {
-            case RegCode::AX:
-                this->EAX.lword = v;
-                break;
-            case RegCode::BX:
-                this->EBX.lword = v;
-                break;
-            case RegCode::CX:
-                this->ECX.lword = v;
-                break;
-            case RegCode::DX:
-                this->EDX.lword = v;
-                break;
-            case RegCode::SP:
-                this->ESP.lword = v;
-                break;
-            case RegCode::BP:
-                this->EBP.lword = v;
-                break;
-            case RegCode::SI:
-                this->ESI.lword = v;
-                break;
-            case RegCode::DI:
-                this->EDI.lword = v;
-                break;
+            case RegCode::AX: this->EAX.lword = v; break;
+            case RegCode::BX: this->EBX.lword = v; break;
+            case RegCode::CX: this->ECX.lword = v; break;
+            case RegCode::DX: this->EDX.lword = v; break;
+            case RegCode::SP: this->ESP.lword = v; break;
+            case RegCode::BP: this->EBP.lword = v; break;
+            case RegCode::SI: this->ESI.lword = v; break;
+            case RegCode::DI: this->EDI.lword = v; break;
             default:
-                throw InvalidRegCodeException("reg16: " + std::to_string(static_cast<int>(rc)));
+                throw InvalidRegCodeException("setReg16: " + std::to_string(static_cast<int>(rc)));
         }
     }
 
     void TPU::setReg32(const RegCode rc, const u32 v) {
         switch (rc) {
-            case RegCode::EAX:
-                this->EAX.dword = v;
-                break;
-            case RegCode::EBX:
-                this->EBX.dword = v;
-                break;
-            case RegCode::ECX:
-                this->ECX.dword = v;
-                break;
-            case RegCode::EDX:
-                this->EDX.dword = v;
-                break;
-            case RegCode::ESP:
-                this->ESP.dword = v;
-                break;
-            case RegCode::EBP:
-                this->EBP.dword = v;
-                break;
-            case RegCode::ESI:
-                this->ESI.dword = v;
-                break;
-            case RegCode::EDI:
-                this->EDI.dword = v;
-                break;
-            case RegCode::IP:
-                this->IP.dword = v;
-                break;
+            case RegCode::EAX: this->EAX.dword = v; break;
+            case RegCode::EBX: this->EBX.dword = v; break;
+            case RegCode::ECX: this->ECX.dword = v; break;
+            case RegCode::EDX: this->EDX.dword = v; break;
+            case RegCode::ESP: this->ESP.dword = v; break;
+            case RegCode::EBP: this->EBP.dword = v; break;
+            case RegCode::ESI: this->ESI.dword = v; break;
+            case RegCode::EDI: this->EDI.dword = v; break;
+            case RegCode::IP:  this->IP.dword = v;  break;
             default:
-                throw InvalidRegCodeException("reg32: " + std::to_string(static_cast<int>(rc)));
+                throw InvalidRegCodeException("setReg32: " + std::to_string(static_cast<int>(rc)));
+        }
+    }
+
+    u8 TPU::getReg8(const RegCode rc) const {
+        switch (rc) {
+            case RegCode::AL: return this->EAX.lreg16.lbyte;
+            case RegCode::AH: return this->EAX.lreg16.hbyte;
+            case RegCode::BL: return this->EBX.lreg16.lbyte;
+            case RegCode::BH: return this->EBX.lreg16.hbyte;
+            case RegCode::CL: return this->ECX.lreg16.lbyte;
+            case RegCode::CH: return this->ECX.lreg16.hbyte;
+            case RegCode::DL: return this->EDX.lreg16.lbyte;
+            case RegCode::DH: return this->EDX.lreg16.hbyte;
+            default:
+                throw InvalidRegCodeException("getReg8: " + std::to_string(static_cast<int>(rc)));
+        }
+    }
+
+    u16 TPU::getReg16(const RegCode rc) const {
+        switch (rc) {
+            case RegCode::AX: return this->EAX.lword;
+            case RegCode::BX: return this->EBX.lword;
+            case RegCode::CX: return this->ECX.lword;
+            case RegCode::DX: return this->EDX.lword;
+            case RegCode::SP: return this->ESP.lword;
+            case RegCode::BP: return this->EBP.lword;
+            case RegCode::SI: return this->ESI.lword;
+            case RegCode::DI: return this->EDI.lword;
+            default:
+                throw InvalidRegCodeException("getReg16: " + std::to_string(static_cast<int>(rc)));
+        }
+    }
+
+    u32 TPU::getReg32(const RegCode rc) const {
+        switch (rc) {
+            case RegCode::EAX: return this->EAX.dword;
+            case RegCode::EBX: return this->EBX.dword;
+            case RegCode::ECX: return this->ECX.dword;
+            case RegCode::EDX: return this->EDX.dword;
+            case RegCode::ESP: return this->ESP.dword;
+            case RegCode::EBP: return this->EBP.dword;
+            case RegCode::ESI: return this->ESI.dword;
+            case RegCode::EDI: return this->EDI.dword;
+            case RegCode::IP:  return this->IP.dword;
+            default:
+                throw InvalidRegCodeException("setReg32: " + std::to_string(static_cast<int>(rc)));
         }
     }
 
