@@ -1,6 +1,8 @@
 #ifndef __TPU_TPU_HPP
 #define __TPU_TPU_HPP
 
+#include <atomic>
+
 #include "memory.hpp"
 
 #define FLAG_CARRY  0
@@ -41,10 +43,10 @@ namespace tpu {
             ~TPU();
 
             // Starts the clock, runs until hlt instruction
-            void start(Memory& mem);
+            void start(Memory& mem, std::atomic<bool>& isExiting);
 
             // Executes the next instruction
-            void execute(Memory& mem);
+            void execute(Memory& mem, std::atomic<bool>& isExiting);
 
             Byte nextByte(Memory& mem);
             Word nextWord(Memory& mem);

@@ -1,7 +1,9 @@
+#include <atomic>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <signal.h>
 
 #include "memory.hpp"
 #include "tpu.hpp"
@@ -11,6 +13,28 @@
 #define CERR std::cerr << "Error:\n  "
 
 using namespace tpu;
+
+/******************** START SIGNAL HANDLERS ********************/
+
+// Global termination flag (atomic)
+std::atomic<bool> isExiting{false};
+
+void catchSig(int) {
+    isExiting.store(true);
+}
+
+void initSigHandler() {
+    struct sigaction sigIntHandler;
+    
+    sigIntHandler.sa_handler = catchSig;
+    sigemptyset(&sigIntHandler.sa_mask);
+    sigIntHandler.sa_flags = 0;
+    
+    sigaction(SIGINT, &sigIntHandler, NULL);
+    sigaction(SIGTERM, &sigIntHandler, NULL);
+}
+
+/******************** END SIGNAL HANDLERS ********************/
 
 // Loads a TPU binary image from a file to memory
 void loadImageToMemory(tpu::Memory& memory, std::ifstream& handle) {
@@ -24,6 +48,8 @@ void loadImageToMemory(tpu::Memory& memory, std::ifstream& handle) {
 }
 
 int main(int argc, char* argv[]) {
+    initSigHandler();
+
     // Verify args
     if (argc < 2) {
         CERR << "Usage: <tpu> /path/to/image.tpu" << std::endl;
@@ -65,7 +91,7 @@ int main(int argc, char* argv[]) {
 
     try {
         // Start the clock
-        tpu.start(memory);
+        tpu.start(memory, isExiting);
     } catch (tpu::Exception& e) {
         std::cerr << e.what() << std::endl;
 
@@ -75,6 +101,8 @@ int main(int argc, char* argv[]) {
 
     // Dump registers
     tpu.dumpRegs();
+
+    std::cout << "Killed TPU." << std::endl;
 
     return EXIT_SUCCESS;
 }

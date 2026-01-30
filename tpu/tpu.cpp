@@ -21,17 +21,17 @@ namespace tpu {
     }
 
     // Starts the clock
-    void TPU::start(Memory& mem) {
+    void TPU::start(Memory& mem, std::atomic<bool>& isExiting) {
         // Move IP to first instruction
         this->IP.dword = mem.dword(0).dword;
 
         // Begin execution
-        this->execute(mem);
+        this->execute(mem, isExiting);
     }
 
     // Reads the next instruction at IP
-    void TPU::execute(Memory& mem) {
-        while (true) {
+    void TPU::execute(Memory& mem, std::atomic<bool>& isExiting) {
+        while (!isExiting) {
             // Read next instruction byte
             inst instruction = static_cast<inst>( this->nextByte(mem) );
 
