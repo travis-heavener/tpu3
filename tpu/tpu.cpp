@@ -107,7 +107,8 @@ namespace tpu {
             case RegCode::EBP: this->EBP.dword = v; break;
             case RegCode::ESI: this->ESI.dword = v; break;
             case RegCode::EDI: this->EDI.dword = v; break;
-            case RegCode::IP:  this->IP.dword = v;  break;
+            case RegCode::IP:
+                throw InvalidRegCodeException("Cannot write to IP register.");
             default:
                 throw InvalidRegCodeException("setReg32: " + std::to_string(static_cast<int>(rc)));
         }
