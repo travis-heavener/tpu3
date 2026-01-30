@@ -81,6 +81,9 @@ namespace tpu {
 
         // 16-bit regs
         std::printf("FLAGS: 0b%016b\n", FLAGS.word);
+
+        // 8-bit regs/flags
+        std::printf("MODE: %d\n", (isInKernelMode ? 1 : 0));
     }
 
 }

@@ -38,13 +38,13 @@ namespace tpu {
             // Executes the next instruction
             void execute(Memory& mem);
 
-            // Debug dumps all registers to stdout
-            void dumpRegs() const;
-        private:
             Byte readNextByte(Memory& mem);
             Word readNextWord(Memory& mem);
             DWord readNextDWord(Memory& mem);
 
+            // Debug dumps all registers to stdout
+            void dumpRegs() const;
+        private:
             reg32 EAX; // Extended accumulator
             reg32 EBX; // Extended base
             reg32 ECX; // Extended counter
