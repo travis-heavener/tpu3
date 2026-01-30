@@ -36,11 +36,11 @@ namespace tpu {
 
     // Returns the parity of the given byte(s)
     template <typename uint>
-    bool getParity(const uint n) {
-        const int bits = sizeof(uint) * 8;
-        bool parity = false;
+    bool parity(uint _n) {
+        const u32 n = static_cast<u32>( _n );
+        bool parity = true;
 
-        for (int i = 0; i < bits; ++i) {
+        for (int i = 0; i < 32; ++i) {
             if ((n >> i) & 1) {
                 parity = !parity;
             }
