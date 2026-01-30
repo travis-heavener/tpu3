@@ -3,6 +3,9 @@
 
 #include "memory.hpp"
 
+#define FLAG_CARRY  0
+#define FLAG_ZERO   6
+
 namespace tpu {
 
     // Reimplement registers as words
@@ -55,9 +58,15 @@ namespace tpu {
             void setReg16(const RegCode, const u16);
             void setReg32(const RegCode, const u32);
 
+            // Separate method to bypass IP write checks in setReg32
+            void setIP(const u32 n) { IP.dword = n; };
+
             u8 readReg8(const RegCode) const;
             u16 readReg16(const RegCode) const;
             u32 readReg32(const RegCode) const;
+
+            bool isFlag(const int f) const { return ((FLAGS.word >> f) & 1) != 0; };
+            void setFlag(const int f, bool b);
 
             // Debug dumps all registers to stdout
             void dumpRegs() const;

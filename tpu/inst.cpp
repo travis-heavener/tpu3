@@ -5,6 +5,25 @@
 namespace tpu {
 
     // Instruction handler methods
+
+    void executeJMP(TPU& tpu, Memory& mem) {
+        u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
+        u32 addr = tpu.nextDWord(mem).dword;
+        switch (MOD) {
+            // jmp
+            case 0: tpu.setIP(addr); break;
+            // jz
+            case 1: if (tpu.isFlag(FLAG_ZERO)) tpu.setIP(addr); break;
+            // jnz
+            case 2: if (!tpu.isFlag(FLAG_ZERO)) tpu.setIP(addr); break;
+            // jc
+            case 3: if (tpu.isFlag(FLAG_CARRY)) tpu.setIP(addr); break;
+            // jnc
+            case 4: if (!tpu.isFlag(FLAG_CARRY)) tpu.setIP(addr); break;
+            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for MOV.");
+        }
+    }
+
     void executeMOV(TPU& tpu, Memory& mem) {
         u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
         RegCode regA = tpu.nextReg(mem);

@@ -22,6 +22,7 @@ namespace tpu {
     };
 
     // Instruction handler methods
+    void executeJMP(TPU&, Memory&);
     void executeMOV(TPU&, Memory&);
 
 }

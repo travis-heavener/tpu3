@@ -38,6 +38,7 @@ namespace tpu {
             // Switch based on instruction
             switch (instruction) {
                 case inst::HLT: return;
+                case inst::JMP: executeJMP(*this, mem); break;
                 case inst::MOV: executeMOV(*this, mem); break;
                 default:
                     throw tpu::InvalidInstructionException( std::to_string(static_cast<u8>(instruction)) );
@@ -158,6 +159,13 @@ namespace tpu {
             default:
                 throw InvalidRegCodeException("setReg32: " + std::to_string(static_cast<int>(rc)));
         }
+    }
+
+    void TPU::setFlag(const int f, bool b) {
+        if (b)
+            FLAGS.word |= (1u << f);
+        else
+            FLAGS.word &= ~(1u << f);
     }
 
     // Debug dump all registers to stdout
