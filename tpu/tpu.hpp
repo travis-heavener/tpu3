@@ -43,18 +43,21 @@ namespace tpu {
             // Executes the next instruction
             void execute(Memory& mem);
 
-            Byte readNextByte(Memory& mem);
-            Word readNextWord(Memory& mem);
-            DWord readNextDWord(Memory& mem);
+            Byte nextByte(Memory& mem);
+            Word nextWord(Memory& mem);
+            DWord nextDWord(Memory& mem);
+
+            // Shorthand for getting the next register in memory
+            RegCode nextReg(Memory& mem) { return static_cast<RegCode>(nextByte(mem)); };
 
             // Register getters/setters
             void setReg8(const RegCode, const u8);
             void setReg16(const RegCode, const u16);
             void setReg32(const RegCode, const u32);
 
-            u8 getReg8(const RegCode) const;
-            u16 getReg16(const RegCode) const;
-            u32 getReg32(const RegCode) const;
+            u8 readReg8(const RegCode) const;
+            u16 readReg16(const RegCode) const;
+            u32 readReg32(const RegCode) const;
 
             // Debug dumps all registers to stdout
             void dumpRegs() const;

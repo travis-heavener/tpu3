@@ -33,11 +33,12 @@ namespace tpu {
     void TPU::execute(Memory& mem) {
         while (true) {
             // Read next instruction byte
-            inst instruction = static_cast<inst>( this->readNextByte(mem) );
+            inst instruction = static_cast<inst>( this->nextByte(mem) );
 
             // Switch based on instruction
             switch (instruction) {
                 case inst::HLT: return;
+                case inst::MOV: executeMOV(*this, mem); break;
                 default:
                     throw tpu::InvalidInstructionException( std::to_string(static_cast<u8>(instruction)) );
             }
@@ -47,19 +48,19 @@ namespace tpu {
     }
 
     // Reads the next byte at the IP
-    Byte TPU::readNextByte(Memory& mem) {
+    Byte TPU::nextByte(Memory& mem) {
         return mem.byte(this->IP.dword++);
     }
 
     // Reads the next word at the IP
-    Word TPU::readNextWord(Memory& mem) {
+    Word TPU::nextWord(Memory& mem) {
         u32 addr = this->IP.dword;
         this->IP.dword += 2;
         return mem.word(addr);
     }
 
     // Reads the next dword at the IP
-    DWord TPU::readNextDWord(Memory& mem) {
+    DWord TPU::nextDWord(Memory& mem) {
         u32 addr = this->IP.dword;
         this->IP.dword += 4;
         return mem.dword(addr);
@@ -112,7 +113,7 @@ namespace tpu {
         }
     }
 
-    u8 TPU::getReg8(const RegCode rc) const {
+    u8 TPU::readReg8(const RegCode rc) const {
         switch (rc) {
             case RegCode::AL: return this->EAX.lreg16.lbyte;
             case RegCode::AH: return this->EAX.lreg16.hbyte;
@@ -123,11 +124,11 @@ namespace tpu {
             case RegCode::DL: return this->EDX.lreg16.lbyte;
             case RegCode::DH: return this->EDX.lreg16.hbyte;
             default:
-                throw InvalidRegCodeException("getReg8: " + std::to_string(static_cast<int>(rc)));
+                throw InvalidRegCodeException("readReg8: " + std::to_string(static_cast<int>(rc)));
         }
     }
 
-    u16 TPU::getReg16(const RegCode rc) const {
+    u16 TPU::readReg16(const RegCode rc) const {
         switch (rc) {
             case RegCode::AX: return this->EAX.lword;
             case RegCode::BX: return this->EBX.lword;
@@ -138,11 +139,11 @@ namespace tpu {
             case RegCode::SI: return this->ESI.lword;
             case RegCode::DI: return this->EDI.lword;
             default:
-                throw InvalidRegCodeException("getReg16: " + std::to_string(static_cast<int>(rc)));
+                throw InvalidRegCodeException("readReg16: " + std::to_string(static_cast<int>(rc)));
         }
     }
 
-    u32 TPU::getReg32(const RegCode rc) const {
+    u32 TPU::readReg32(const RegCode rc) const {
         switch (rc) {
             case RegCode::EAX: return this->EAX.dword;
             case RegCode::EBX: return this->EBX.dword;
