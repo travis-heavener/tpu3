@@ -59,9 +59,9 @@ namespace tpu {
 
             // Processor flags
             reg16 FLAGS;
+            bool isInKernelMode; // <-- Single bit, set if in kernel mode, cleared if in user mode
     };
 
 }
 
 #endif
-

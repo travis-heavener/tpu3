@@ -13,6 +13,7 @@ namespace tpu {
         IP = SP = BP = SI = DI = {0};
 
         FLAGS = {0};
+        isInKernelMode = false;
     }
 
     TPU::~TPU() {
