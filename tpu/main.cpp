@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     tpu::TPU tpu;
 
     try {
-       // Start the clock
+        // Start the clock
         tpu.start(memory);
     } catch (tpu::Exception& e) {
         std::cerr << e.what() << std::endl;

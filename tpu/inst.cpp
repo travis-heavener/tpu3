@@ -6,7 +6,11 @@ namespace tpu {
     void executeMOV(TPU& tpu, Memory& mem) {
         u8 MOD = 0b111 & tpu.readNextByte(mem); // Read MOD byte
         switch (MOD) {
-            case 0: break; // reg8, imm8
+            case 0: { // reg8, imm8
+                // TODO - verify reg8
+                // TODO - tpu.setReg8( RegCode, imm8 as u8 );
+                break;
+            }
             case 1: break; // reg16, imm16
             case 2: break; // reg32, imm32
             case 3: break; // reg8, reg8

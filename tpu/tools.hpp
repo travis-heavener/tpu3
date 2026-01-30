@@ -20,8 +20,11 @@ namespace tpu {
         ECX = 0x08, CX  = 0x09, CH = 0x0A, CL = 0x0B,
         EDX = 0x0C, DX  = 0x0D, DH = 0x0E, DL = 0x0F,
 
-        IP = 0x10,  SP = 0x11,  BP = 0x12,
-        SI = 0x13,  DI = 0x14
+        IP = 0x10,
+        ESP = 0x11, SP = 0x12,
+        EBP = 0x13, BP = 0x14,
+        ESI = 0x15, SI = 0x16,
+        EDI = 0x17, DI = 0x18
     };
 
     // String to uints
@@ -78,6 +81,14 @@ namespace tpu {
     class InvalidMODBitsException : public Exception {
         public:
             InvalidMODBitsException(const std::string msg) : msg("InvalidMODBitsException: " + msg) {};
+            const char* what() const noexcept { return msg.c_str(); };
+        private:
+            std::string msg;
+    };
+
+    class InvalidRegCodeException : public Exception {
+        public:
+            InvalidRegCodeException(const std::string msg) : msg("InvalidRegCodeException: " + msg) {};
             const char* what() const noexcept { return msg.c_str(); };
         private:
             std::string msg;

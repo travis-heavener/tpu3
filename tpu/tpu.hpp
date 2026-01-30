@@ -6,26 +6,31 @@
 namespace tpu {
 
     // Reimplement registers as words
-    typedef union reg32 {
-        u32 dword;
-        struct {
-            u16 lword;
-            u16 hword;
-        };
-        struct {
-            u8 lbyte;
-            u8 hbyte;
-            u16 _; // <-- Unused, only need lower bytes
-        };
-    } reg32;
-
+    typedef u8 reg8;
+    
     typedef union reg16 {
         u16 word;
+        struct {
+            reg8 lreg8;
+            reg8 hreg8;
+        };
         struct {
             u8 lbyte;
             u8 hbyte;
         };
     } reg16;
+    
+    typedef union reg32 {
+        u32 dword;
+        struct {
+            reg16 lreg16;
+            reg16 hreg16;
+        };
+        struct {
+            u16 lword;
+            u16 hword;
+        };
+    } reg32;
 
     class TPU {
         public:
@@ -42,6 +47,15 @@ namespace tpu {
             Word readNextWord(Memory& mem);
             DWord readNextDWord(Memory& mem);
 
+            // Register getters/setters
+            void setReg8(const RegCode, const u8);
+            void setReg16(const RegCode, const u16);
+            void setReg32(const RegCode, const u32);
+
+            u8 getReg8(const RegCode);
+            u16 getReg16(const RegCode);
+            u32 getReg32(const RegCode);
+
             // Debug dumps all registers to stdout
             void dumpRegs() const;
         private:
@@ -52,10 +66,10 @@ namespace tpu {
 
             // Address ptrs
             reg32 IP; // Inst ptr
-            reg32 SP; // Stack ptr
-            reg32 BP; // Base ptr
-            reg32 SI; // Source index
-            reg32 DI; // Dest index
+            reg32 ESP; // Stack ptr
+            reg32 EBP; // Base ptr
+            reg32 ESI; // Source index
+            reg32 EDI; // Dest index
 
             // Processor flags
             reg16 FLAGS;
