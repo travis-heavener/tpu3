@@ -47,6 +47,7 @@ namespace tpu {
                 case inst::PUSH: executePUSH(*this, mem); break;
                 case inst::POP: executePOP(*this, mem); break;
                 case inst::BUF: executeBUF(*this, mem); break;
+                case inst::NOT: executeNOT(*this, mem); break;
                 default:
                     throw tpu::InvalidInstructionException( std::to_string(static_cast<u8>(instruction)) );
             }

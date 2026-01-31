@@ -37,6 +37,7 @@ namespace tpu {
     void executePUSH(TPU&, Memory&);
     void executePOP(TPU&, Memory&);
     void executeBUF(TPU&, Memory&);
+    void executeNOT(TPU&, Memory&);
 
 }
 

@@ -163,4 +163,18 @@ namespace tpu {
         }
     }
 
+    void executeNOT(TPU& tpu, Memory& mem) {
+        const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
+        const RegCode regA = tpu.nextReg(mem);
+        switch (MOD) {
+            // reg8
+            case 0: tpu.setReg8( regA, static_cast<u8>(~tpu.readReg8(regA)) ); break;
+            // reg16
+            case 1: tpu.setReg16( regA, static_cast<u16>(~tpu.readReg16(regA)) ); break;
+            // reg32
+            case 2: tpu.setReg32( regA, static_cast<u32>(~tpu.readReg32(regA)) ); break;
+            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for NOT.");
+        }
+    }
+
 }

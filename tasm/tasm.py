@@ -45,12 +45,19 @@ if __name__ == "__main__":
         # f.write(b"\x0A\x02\x0D") # <-- push DX
         # f.write(b"\x0B\x02\x01") # <-- pop AX
 
+        # f.write(b"\x07\x00\x0E\x80") # <-- mov DH, 0
+        # f.write(b"\x07\x01\x09\x21\x00") # <-- mov CX, 0x21
+        # f.write(b"\x07\x02\x13\xEF\xBE\xAD\xDE") # <-- mov EBP, 0xDEADBEEF
+        # f.write(b"\x20\x00\x0E") # <-- buf DH
+        # f.write(b"\x20\x01\x09") # <-- buf CX
+        # f.write(b"\x20\x02\x13") # <-- buf EBP
+
         f.write(b"\x07\x00\x0E\x80") # <-- mov DH, 0
         f.write(b"\x07\x01\x09\x21\x00") # <-- mov CX, 0x21
         f.write(b"\x07\x02\x13\xEF\xBE\xAD\xDE") # <-- mov EBP, 0xDEADBEEF
-        # f.write(b"\x20\x00\x0E") # <-- buf DH
-        # f.write(b"\x20\x01\x09") # <-- buf CX
-        f.write(b"\x20\x02\x13") # <-- buf EBP
+        f.write(b"\x25\x00\x0E") # <-- mov DH, 0
+        f.write(b"\x25\x01\x09") # <-- mov DH, 0
+        f.write(b"\x25\x02\x13") # <-- mov DH, 0
 
         f.write(b"\x01") # <-- HLT
 
