@@ -37,6 +37,7 @@ namespace tpu {
     void executePUSH(TPU&, Memory&);
     void executePOP(TPU&, Memory&);
     void executeBUF(TPU&, Memory&);
+    void executeCMP(TPU&, Memory&);
     void executeAND(TPU&, Memory&);
     void executeOR(TPU&, Memory&);
     void executeXOR(TPU&, Memory&);

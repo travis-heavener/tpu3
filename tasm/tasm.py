@@ -52,12 +52,12 @@ if __name__ == "__main__":
         # f.write(b"\x20\x01\x09") # <-- buf CX
         # f.write(b"\x20\x02\x13") # <-- buf EBP
 
-        f.write(b"\x07\x00\x0E\x80") # <-- mov DH, 0
+        f.write(b"\x07\x00\x0E\x00") # <-- mov DH, 0
         f.write(b"\x07\x01\x09\x21\x00") # <-- mov CX, 0x21
         f.write(b"\x07\x02\x13\xEF\xBE\xAD\xDE") # <-- mov EBP, 0xDEADBEEF
-        f.write(b"\x24\x00\x0E\x7F")
-        f.write(b"\x24\x01\x09\xDE\xFF")
-        f.write(b"\x24\x02\x13\x10\x41\x52\x21")
+        # f.write(b"\x21\x00\x0E\xFF")
+        # f.write(b"\x21\x01\x09\xDE\xFF")
+        f.write(b"\x21\x02\x13\x10\x41\x52\x21")
 
         f.write(b"\x01") # <-- HLT
 

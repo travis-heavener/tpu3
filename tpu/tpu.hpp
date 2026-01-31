@@ -10,7 +10,6 @@
 #define FLAG_ZERO       6
 #define FLAG_SIGN       7
 #define FLAG_OVERFLOW   11
-#define FLAGS_ALL       FLAG_CARRY | FLAG_PARITY | FLAG_ZERO | FLAG_SIGN | FLAG_OVERFLOW
 
 namespace tpu {
 
@@ -81,9 +80,6 @@ namespace tpu {
 
             bool isFlag(const int f) const { return (FLAGS.word & (1u << f)) != 0; };
             void setFlag(const int f, const bool b);
-            void u8_loadFlags(const u8 n, const int flags);
-            void u16_loadFlags(const u16 n, const int flags);
-            void u32_loadFlags(const u32 n, const int flags);
 
             // Debug dumps all registers to stdout
             void dumpRegs() const;
