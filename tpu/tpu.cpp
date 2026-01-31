@@ -38,16 +38,19 @@ namespace tpu {
             // Switch based on instruction
             switch (instruction) {
                 case inst::HLT: return;
-                case inst::CALL: executeCALL(*this, mem); break;
-                case inst::RET: executeRET(*this, mem); break;
-                case inst::JMP: executeJMP(*this, mem); break;
-                case inst::MOV: executeMOV(*this, mem); break;
-                case inst::LB: executeLB(*this, mem); break;
-                case inst::SB: executeSB(*this, mem); break;
-                case inst::PUSH: executePUSH(*this, mem); break;
-                case inst::POP: executePOP(*this, mem); break;
-                case inst::BUF: executeBUF(*this, mem); break;
-                case inst::NOT: executeNOT(*this, mem); break;
+                case inst::CALL:    executeCALL(*this, mem); break;
+                case inst::RET:     executeRET(*this, mem); break;
+                case inst::JMP:     executeJMP(*this, mem); break;
+                case inst::MOV:     executeMOV(*this, mem); break;
+                case inst::LB:      executeLB(*this, mem); break;
+                case inst::SB:      executeSB(*this, mem); break;
+                case inst::PUSH:    executePUSH(*this, mem); break;
+                case inst::POP:     executePOP(*this, mem); break;
+                case inst::BUF:     executeBUF(*this, mem); break;
+                case inst::AND:     executeAND(*this, mem); break;
+                case inst::OR:      executeOR(*this, mem); break;
+                case inst::XOR:     executeXOR(*this, mem); break;
+                case inst::NOT:     executeNOT(*this, mem); break;
                 default:
                     throw tpu::InvalidInstructionException( std::to_string(static_cast<u8>(instruction)) );
             }
@@ -204,6 +207,30 @@ namespace tpu {
             FLAGS.word |= (1u << f);
         else
             FLAGS.word &= ~(1u << f);
+    }
+
+    void TPU::u8_loadFlags(const u8 n, const int flags) {
+        if ((flags & FLAG_CARRY) > 0)    setFlag(FLAG_CARRY, false);
+        if ((flags & FLAG_PARITY) > 0)   setFlag(FLAG_PARITY, parity<u8>(n));
+        if ((flags & FLAG_ZERO) > 0)     setFlag(FLAG_ZERO, n == 0);
+        if ((flags & FLAG_SIGN) > 0)     setFlag(FLAG_SIGN, (n & 0x80) > 0);
+        if ((flags & FLAG_OVERFLOW) > 0) setFlag(FLAG_OVERFLOW, false);
+    }
+
+    void TPU::u16_loadFlags(const u16 n, const int flags) {
+        if ((flags & FLAG_CARRY) > 0)    setFlag(FLAG_CARRY, false);
+        if ((flags & FLAG_PARITY) > 0)   setFlag(FLAG_PARITY, parity<u16>(n));
+        if ((flags & FLAG_ZERO) > 0)     setFlag(FLAG_ZERO, n == 0);
+        if ((flags & FLAG_SIGN) > 0)     setFlag(FLAG_SIGN, (n & 0x8000) > 0);
+        if ((flags & FLAG_OVERFLOW) > 0) setFlag(FLAG_OVERFLOW, false);
+    }
+
+    void TPU::u32_loadFlags(const u32 n, const int flags) {
+        if ((flags & FLAG_CARRY) > 0)    setFlag(FLAG_CARRY, false);
+        if ((flags & FLAG_PARITY) > 0)   setFlag(FLAG_PARITY, parity<u32>(n));
+        if ((flags & FLAG_ZERO) > 0)     setFlag(FLAG_ZERO, n == 0);
+        if ((flags & FLAG_SIGN) > 0)     setFlag(FLAG_SIGN, (n & 0x8000'0000) > 0);
+        if ((flags & FLAG_OVERFLOW) > 0) setFlag(FLAG_OVERFLOW, false);
     }
 
     // Debug dump all registers to stdout

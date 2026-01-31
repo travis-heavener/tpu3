@@ -130,38 +130,69 @@ namespace tpu {
         const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
         switch (MOD) {
             // reg8
-            case 0: {
-                const u8 v = tpu.readReg8( tpu.nextReg(mem) );
-                tpu.setFlag(FLAG_CARRY, false);
-                tpu.setFlag(FLAG_PARITY, parity<u8>(v));
-                tpu.setFlag(FLAG_ZERO, v == 0);
-                tpu.setFlag(FLAG_SIGN, (v & 0x80) > 0);
-                tpu.setFlag(FLAG_OVERFLOW, false);
-                break;
-            }
+            case 0: tpu.u8_loadFlags( tpu.readReg8( tpu.nextReg(mem) ), FLAGS_ALL ); break;
             // reg16
-            case 1: {
-                const u16 v = tpu.readReg16( tpu.nextReg(mem) );
-                tpu.setFlag(FLAG_CARRY, false);
-                tpu.setFlag(FLAG_PARITY, parity<u16>(v));
-                tpu.setFlag(FLAG_ZERO, v == 0);
-                tpu.setFlag(FLAG_SIGN, (v & 0x8000) > 0);
-                tpu.setFlag(FLAG_OVERFLOW, false);
-                break;
-            }
+            case 1: tpu.u16_loadFlags( tpu.readReg16( tpu.nextReg(mem) ), FLAGS_ALL ); break;
             // reg32
-            case 2: {
-                const u32 v = tpu.readReg32( tpu.nextReg(mem) );
-                tpu.setFlag(FLAG_CARRY, false);
-                tpu.setFlag(FLAG_PARITY, parity<u32>(v));
-                tpu.setFlag(FLAG_ZERO, v == 0);
-                tpu.setFlag(FLAG_SIGN, (v & 0x80000000) > 0);
-                tpu.setFlag(FLAG_OVERFLOW, false);
-                break;
-            }
+            case 2: tpu.u32_loadFlags( tpu.readReg32( tpu.nextReg(mem) ), FLAGS_ALL ); break;
             default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for BUF.");
         }
     }
+
+    #define BITWISE_EXECUTE_OP(name, op) \
+        void execute##name(TPU& tpu, Memory& mem) { \
+            const u8 MOD = 0b111 & tpu.nextByte(mem); /* Read MOD byte */ \
+            const RegCode regA = tpu.nextReg(mem); \
+            switch (MOD) { \
+                /* reg8, imm8 */ \
+                case 0: { \
+                    const u8 val = tpu.readReg8(regA) op tpu.nextByte(mem); \
+                    tpu.setReg8(regA, static_cast<u8>(val)); \
+                    tpu.u8_loadFlags(val, FLAGS_ALL); \
+                    break; \
+                } \
+                /* reg16, imm16 */ \
+                case 1: { \
+                    const u16 val = tpu.readReg16(regA) op tpu.nextWord(mem).word; \
+                    tpu.setReg16(regA, static_cast<u16>(val)); \
+                    tpu.u16_loadFlags(val, FLAGS_ALL); \
+                    break; \
+                } \
+                /* reg32, imm32 */ \
+                case 2: { \
+                    const u32 val = tpu.readReg32(regA) op tpu.nextDWord(mem).dword; \
+                    tpu.setReg32(regA, static_cast<u32>(val)); \
+                    tpu.u32_loadFlags(val, FLAGS_ALL); \
+                    break; \
+                } \
+                /* reg8, reg8 */ \
+                case 3: { \
+                    const u8 val = tpu.readReg8(regA) op tpu.readReg8(tpu.nextReg(mem)); \
+                    tpu.setReg8(regA, static_cast<u8>(val)); \
+                    tpu.u8_loadFlags(val, FLAGS_ALL); \
+                    break; \
+                } \
+                /* reg16, reg16 */ \
+                case 4: { \
+                    const u16 val = tpu.readReg16(regA) op tpu.readReg16(tpu.nextReg(mem)); \
+                    tpu.setReg16(regA, static_cast<u16>(val)); \
+                    tpu.u16_loadFlags(val, FLAGS_ALL); \
+                    break; \
+                } \
+                /* reg32, reg32 */ \
+                case 5: { \
+                    const u32 val = tpu.readReg32(regA) op tpu.readReg32(tpu.nextReg(mem)); \
+                    tpu.setReg32(regA, static_cast<u32>(val)); \
+                    tpu.u32_loadFlags(val, FLAGS_ALL); \
+                    break; \
+                } \
+                default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for " #name "."); \
+            } \
+        }
+
+    BITWISE_EXECUTE_OP(AND, &);
+    BITWISE_EXECUTE_OP(OR, |);
+    BITWISE_EXECUTE_OP(XOR, ^);
 
     void executeNOT(TPU& tpu, Memory& mem) {
         const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
