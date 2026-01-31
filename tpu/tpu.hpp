@@ -80,6 +80,7 @@ namespace tpu {
 
             // Address ptrs
             reg32 IP; // Inst ptr
+            reg32 RP; // Return ptr
             reg32 ESP; // Stack ptr
             reg32 EBP; // Base ptr
             reg32 ESI; // Source index

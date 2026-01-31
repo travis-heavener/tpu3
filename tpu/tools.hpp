@@ -24,7 +24,8 @@ namespace tpu {
         ESP = 0x11, SP = 0x12,
         EBP = 0x13, BP = 0x14,
         ESI = 0x15, SI = 0x16,
-        EDI = 0x17, DI = 0x18
+        EDI = 0x17, DI = 0x18,
+        RP = 0x19
     };
 
     // String to uints

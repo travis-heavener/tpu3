@@ -6,6 +6,14 @@ namespace tpu {
 
     // Instruction handler methods
 
+    void executeCALL(TPU& tpu, Memory& mem) {
+        tpu.setIP( tpu.nextDWord(mem).dword );
+    }
+
+    void executeRET(TPU& tpu, Memory&) {
+        tpu.setIP( tpu.readReg32(RegCode::RP) );
+    }
+
     void executeJMP(TPU& tpu, Memory& mem) {
         u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
         u32 addr = tpu.nextDWord(mem).dword;

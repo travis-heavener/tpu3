@@ -10,7 +10,7 @@ namespace tpu {
     TPU::TPU() {
         // Reset flags
         EAX = EBX = ECX = EDX = {0};
-        IP = ESP = EBP = ESI = EDI = {0};
+        IP = RP = ESP = EBP = ESI = EDI = {0};
 
         FLAGS = {0};
         isInKernelMode = false;
@@ -38,6 +38,8 @@ namespace tpu {
             // Switch based on instruction
             switch (instruction) {
                 case inst::HLT: return;
+                case inst::CALL: executeCALL(*this, mem); break;
+                case inst::RET: executeRET(*this, mem); break;
                 case inst::JMP: executeJMP(*this, mem); break;
                 case inst::MOV: executeMOV(*this, mem); break;
                 default:
@@ -177,6 +179,7 @@ namespace tpu {
         std::printf("EDX: 0x%08x\n", EDX.dword);
 
         std::printf("IP:  0x%08x\n", IP.dword);
+        std::printf("RP:  0x%08x\n", RP.dword);
         std::printf("SP:  0x%08x\n", ESP.dword);
         std::printf("BP:  0x%08x\n", EBP.dword);
         std::printf("SI:  0x%08x\n", ESI.dword);

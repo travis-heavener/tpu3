@@ -8,8 +8,8 @@ The following table depicts the complete instruction set for the 32-bit TPU3 arc
 | hlt           |    -- |    -- |   0x01 |       -- |      -- | Stops the clock on the CPU. |
 | syscall       |    -- |    -- |   0x02 |       -- |      -- | Triggers a syscall, entering kernel mode for protected instructions. See `call`. |
 | sysret        |    -- |    -- |   0x03 |       -- |      -- | Returns from a syscall, exiting kernel mode and returning to user mode. See `ret`. |
-| call          | label |    -- |   0x04 |       -- |      -- | Moves the IP to a named label's address, storing the current IP on the call stack. |
-| ret           |    -- |    -- |   0x05 |       -- |      -- | Reverts the IP to the previous memory address stored on top of the call stack. |
+| call          | label |    -- |   0x04 |       -- |      -- | Moves the IP to the label's address, storing the current IP in RP. |
+| ret           |    -- |    -- |   0x05 |       -- |      -- | Reverts the IP to the previous memory address stored in RP. |
 | jmp           | label |    -- |   0x06 |        0 |      -- | Moves the IP to the label's address. |
 | jz            | label |    -- |   0x06 |        1 |      -- | Moves the IP to the label's address, if the zero flag (ZF) is set. |
 | jnz           | label |    -- |   0x06 |        2 |      -- | Moves the IP to the label's address, if the zero flag (ZF) is cleared. |
