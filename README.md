@@ -27,5 +27,5 @@ I'll add more instructions once this actually goes somewhere, but there's not a 
 
 The TPU3 project consists of a few modular pieces, each compiled from the GNU Makefile.
 
-- `tpu/`: Source for the TPU itself (see [TASM.md](docs/TASM.md))
-- `tasm/`: Source for the TPU Assembler (see [TPU.md](docs/TPU.md))
+- `tpu/`: Source for the TPU itself (see [TPU.md](docs/TPU.md))
+- `tasm/`: Source for the TPU Assembler (see [TASM.md](docs/TASM.md))
