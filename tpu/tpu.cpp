@@ -43,6 +43,7 @@ namespace tpu {
                 case inst::JMP: executeJMP(*this, mem); break;
                 case inst::MOV: executeMOV(*this, mem); break;
                 case inst::LB: executeLB(*this, mem); break;
+                case inst::SB: executeSB(*this, mem); break;
                 default:
                     throw tpu::InvalidInstructionException( std::to_string(static_cast<u8>(instruction)) );
             }

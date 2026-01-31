@@ -64,4 +64,16 @@ namespace tpu {
         }
     }
 
+    void executeSB(TPU& tpu, Memory& mem) {
+        const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
+        const RegCode regA = tpu.nextReg(mem);
+        const u32 addr = tpu.nextDWord(mem).dword;
+        switch (MOD) {
+            case 0: mem.setByte( addr, tpu.readReg8(regA) ); break;
+            case 1: mem.setWord( addr, tpu.readReg16(regA) ); break;
+            case 2: mem.setDWord( addr, tpu.readReg32(regA) ); break;
+            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for SB/SW/SDW.");
+        }
+    }
+
 }

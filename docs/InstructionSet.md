@@ -24,9 +24,9 @@ The following table depicts the complete instruction set for the 32-bit TPU3 arc
 | lb            |  reg8 | @addr |   0x08 |        0 |      -- | Loads a byte from a memory address into an 8-bit register. |
 | lw            | reg16 | @addr |   0x08 |        1 |      -- | Loads a word starting at a memory address into a 16-bit register. |
 | ldw           | reg32 | @addr |   0x08 |        2 |      -- | Loads a dword starting at a memory address into a 32-bit register. |
-| sb            | @addr |  reg8 |   0x09 |        0 |      -- | Saves a byte from an 8-bit register to a memory address. |
-| sw            | @addr | reg16 |   0x09 |        1 |      -- | Saves a word from a 16-bit register to a memory address. |
-| sdw           | @addr | reg32 |   0x09 |        2 |      -- | Saves a dword from a 32-bit register to a memory address. |
+| sb            |  reg8 | @addr |   0x09 |        0 |      -- | Saves a byte from an 8-bit register to a memory address. |
+| sw            | reg16 | @addr |   0x09 |        1 |      -- | Saves a word from a 16-bit register to a memory address. |
+| sdw           | reg32 | @addr |   0x09 |        2 |      -- | Saves a dword from a 32-bit register to a memory address. |
 | push          |  reg8 |    -- |   0x0A |        0 |      -- | Pushes the value of an 8-bit register onto the top of the stack. |
 | push          |  imm8 |    -- |   0x0A |        1 |      -- | Pushes an immediate 8-bit value onto the top of the stack. |
 | pushw         | reg16 |    -- |   0x0A |        2 |      -- | Pushes the value of a 16-bit register onto the top of the stack. |
