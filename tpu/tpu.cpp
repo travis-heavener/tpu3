@@ -23,7 +23,7 @@ namespace tpu {
     // Starts the clock
     void TPU::start(Memory& mem, std::atomic<bool>& isExiting) {
         // Move IP to first instruction
-        this->IP.dword = mem.dword(0).dword;
+        this->IP.dword = mem.readDWord(0).dword;
 
         // Begin execution
         this->execute(mem, isExiting);
@@ -52,21 +52,21 @@ namespace tpu {
 
     // Reads the next byte at the IP
     Byte TPU::nextByte(Memory& mem) {
-        return mem.byte(this->IP.dword++);
+        return mem.readByte(this->IP.dword++);
     }
 
     // Reads the next word at the IP
     Word TPU::nextWord(Memory& mem) {
         u32 addr = this->IP.dword;
         this->IP.dword += 2;
-        return mem.word(addr);
+        return mem.readWord(addr);
     }
 
     // Reads the next dword at the IP
     DWord TPU::nextDWord(Memory& mem) {
         u32 addr = this->IP.dword;
         this->IP.dword += 4;
-        return mem.dword(addr);
+        return mem.readDWord(addr);
     }
 
     // Register getters/setters

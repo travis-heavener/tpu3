@@ -71,6 +71,14 @@ namespace tpu {
             virtual const char* what() const noexcept { return "Base TPUException"; };
     };
 
+    class MemoryReadOutOfBoundsException : public Exception {
+        public:
+            MemoryReadOutOfBoundsException(const std::string msg) : msg("MemoryReadOutOfBoundsException: " + msg) {};
+            const char* what() const noexcept { return msg.c_str(); };
+        private:
+            std::string msg;
+    };
+
     class InvalidInstructionException : public Exception {
         public:
             InvalidInstructionException(const std::string msg) : msg("InvalidInstructionException: " + msg) {};

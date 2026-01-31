@@ -28,9 +28,13 @@ namespace tpu {
             Byte* data() { return mem; };
             u32 size() const { return _size; };
 
-            Byte byte(const u32 addr) const;
-            Word word(const u32 addr) const;
-            DWord dword(const u32 addr) const;
+            Byte readByte(const u32 addr) const;
+            Word readWord(const u32 addr) const;
+            DWord readDWord(const u32 addr) const;
+
+            void setByte(const u32 addr, const u8 v);
+            void setWord(const u32 addr, const u16 v);
+            void setDWord(const u32 addr, const u32 v);
         private:
             Byte* mem;
             u32 _size;
