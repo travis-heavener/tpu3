@@ -18,7 +18,13 @@ namespace tpu {
         LB      = 0x08,
         SB      = 0x09,
         PUSH    = 0x0A,
-        POP     = 0x0B
+        POP     = 0x0B,
+        BUF     = 0x20,
+        CMP     = 0x21,
+        AND     = 0x22,
+        OR      = 0x23,
+        XOR     = 0x24,
+        NOT     = 0x25
     };
 
     // Instruction handler methods
@@ -30,6 +36,7 @@ namespace tpu {
     void executeSB(TPU&, Memory&);
     void executePUSH(TPU&, Memory&);
     void executePOP(TPU&, Memory&);
+    void executeBUF(TPU&, Memory&);
 
 }
 

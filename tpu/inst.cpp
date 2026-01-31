@@ -122,7 +122,44 @@ namespace tpu {
             }
             // <no dest, pop dword>
             case 5: tpu.popDWord(mem); break;
-            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for PUSH-like.");
+            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for POP-like.");
+        }
+    }
+
+    void executeBUF(TPU& tpu, Memory& mem) {
+        const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
+        switch (MOD) {
+            // reg8
+            case 0: {
+                const u8 v = tpu.readReg8( tpu.nextReg(mem) );
+                tpu.setFlag(FLAG_CARRY, false);
+                tpu.setFlag(FLAG_PARITY, parity<u8>(v));
+                tpu.setFlag(FLAG_ZERO, v == 0);
+                tpu.setFlag(FLAG_SIGN, (v & 0x80) > 0);
+                tpu.setFlag(FLAG_OVERFLOW, false);
+                break;
+            }
+            // reg16
+            case 1: {
+                const u16 v = tpu.readReg16( tpu.nextReg(mem) );
+                tpu.setFlag(FLAG_CARRY, false);
+                tpu.setFlag(FLAG_PARITY, parity<u16>(v));
+                tpu.setFlag(FLAG_ZERO, v == 0);
+                tpu.setFlag(FLAG_SIGN, (v & 0x8000) > 0);
+                tpu.setFlag(FLAG_OVERFLOW, false);
+                break;
+            }
+            // reg32
+            case 2: {
+                const u32 v = tpu.readReg32( tpu.nextReg(mem) );
+                tpu.setFlag(FLAG_CARRY, false);
+                tpu.setFlag(FLAG_PARITY, parity<u32>(v));
+                tpu.setFlag(FLAG_ZERO, v == 0);
+                tpu.setFlag(FLAG_SIGN, (v & 0x80000000) > 0);
+                tpu.setFlag(FLAG_OVERFLOW, false);
+                break;
+            }
+            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for BUF.");
         }
     }
 

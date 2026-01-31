@@ -39,3 +39,33 @@ The following table depicts the complete instruction set for the 32-bit TPU3 arc
 | popw          |    -- |    -- |   0x0B |        3 |      -- | Discards the top word of the stack. |
 | popdw         | reg32 |    -- |   0x0B |        4 |      -- | Pops the top dword of the stack into a 32-bit register. |
 | popdw         |    -- |    -- |   0x0B |        5 |      -- | Discards the top dword of the stack. |
+| buf           |  reg8 |    -- |   0x20 |        0 |      -- | Updates flags according to the value in an 8-bit register. |
+| buf           | reg16 |    -- |   0x20 |        1 |      -- | Updates flags according to the value in a 16-bit register. |
+| buf           | reg32 |    -- |   0x20 |        2 |      -- | Updates flags according to the value in a 32-bit register. |
+| cmp           |  reg8 |  imm8 |   0x21 |        0 |      -- | Compares an 8-bit register and imm8. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| cmp           | reg16 | imm16 |   0x21 |        1 |      -- | Compares a 16-bit register and imm16. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| cmp           | reg32 | imm32 |   0x21 |        2 |      -- | Compares a 32-bit register and imm32. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| cmp           |  reg8 |  reg8 |   0x21 |        3 |      -- | Compares two 8-bit registers. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| cmp           | reg16 | reg16 |   0x21 |        4 |      -- | Compares two 16-bit registers. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| cmp           | reg32 | reg32 |   0x21 |        5 |      -- | Compares two 32-bit registers. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| and           |  reg8 |  imm8 |   0x22 |        0 |      -- | Bitwise AND between an 8-bit register and imm8, stored in first operand. |
+| and           | reg16 | imm16 |   0x22 |        1 |      -- | Bitwise AND between a 16-bit register and imm16, stored in first operand. |
+| and           | reg32 | imm32 |   0x22 |        2 |      -- | Bitwise AND between a 32-bit register and imm32, stored in first operand. |
+| and           |  reg8 |  reg8 |   0x22 |        3 |      -- | Bitwise AND between two 8-bit registers, stored in first operand. |
+| and           | reg16 | reg16 |   0x22 |        4 |      -- | Bitwise AND between two 16-bit registers, stored in first operand. |
+| and           | reg32 | reg32 |   0x22 |        5 |      -- | Bitwise AND between two 32-bit registers, stored in first operand. |
+| or            |  reg8 |  imm8 |   0x23 |        0 |      -- | Bitwise OR between an 8-bit register and imm8, stored in first operand. |
+| or            | reg16 | imm16 |   0x23 |        1 |      -- | Bitwise OR between a 16-bit register and imm16, stored in first operand. |
+| or            | reg32 | imm32 |   0x23 |        2 |      -- | Bitwise OR between a 32-bit register and imm32, stored in first operand. |
+| or            |  reg8 |  reg8 |   0x23 |        3 |      -- | Bitwise OR between two 8-bit registers, stored in first operand. |
+| or            | reg16 | reg16 |   0x23 |        4 |      -- | Bitwise OR between two 16-bit registers, stored in first operand. |
+| or            | reg32 | reg32 |   0x23 |        5 |      -- | Bitwise OR between two 32-bit registers, stored in first operand. |
+| xor           |  reg8 |  imm8 |   0x24 |        0 |      -- | Bitwise XOR between an 8-bit register and imm8, stored in first operand. |
+| xor           | reg16 | imm16 |   0x24 |        1 |      -- | Bitwise XOR between a 16-bit register and imm16, stored in first operand. |
+| xor           | reg32 | imm32 |   0x24 |        2 |      -- | Bitwise XOR between a 32-bit register and imm32, stored in first operand. |
+| xor           |  reg8 |  reg8 |   0x24 |        3 |      -- | Bitwise XOR between two 8-bit registers, stored in first operand. |
+| xor           | reg16 | reg16 |   0x24 |        4 |      -- | Bitwise XOR between two 16-bit registers, stored in first operand. |
+| xor           | reg32 | reg32 |   0x24 |        5 |      -- | Bitwise XOR between two 32-bit registers, stored in first operand. |
+| not           |  reg8 |    -- |   0x25 |        0 |      -- | Bitwise NOT on an 8-bit register, stored in place. |
+| not           | reg16 |    -- |   0x25 |        1 |      -- | Bitwise NOT on a 16-bit register, stored in place. |
+| not           | reg32 |    -- |   0x25 |        2 |      -- | Bitwise NOT on a 32-bit register, stored in place. |

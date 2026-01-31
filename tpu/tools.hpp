@@ -49,18 +49,15 @@ namespace tpu {
 
     // Flags helpers
 
-    // Returns the parity of the given byte(s)
+    // Returns the parity of the least significant byte
+    // See https://en.wikipedia.org/wiki/Parity_flag
     template <typename uint>
-    bool parity(uint _n) {
-        const u32 n = static_cast<u32>( _n );
+    inline constexpr bool parity(const uint _n) {
+        const u32 n = static_cast<u32>(_n);
         bool parity = true;
-
-        for (int i = 0; i < 32; ++i) {
-            if ((n >> i) & 1) {
+        for (int i = 0; i < 8; ++i)
+            if (((1u << i) & n) != 0)
                 parity = !parity;
-            }
-        }
-
         return parity;
     }
 

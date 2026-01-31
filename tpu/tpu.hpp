@@ -5,8 +5,11 @@
 
 #include "memory.hpp"
 
-#define FLAG_CARRY  0
-#define FLAG_ZERO   6
+#define FLAG_CARRY      0
+#define FLAG_PARITY     2
+#define FLAG_ZERO       6
+#define FLAG_SIGN       7
+#define FLAG_OVERFLOW   11
 
 namespace tpu {
 
@@ -75,8 +78,8 @@ namespace tpu {
             u16 readReg16(const RegCode) const;
             u32 readReg32(const RegCode) const;
 
-            bool isFlag(const int f) const { return ((FLAGS.word >> f) & 1) != 0; };
-            void setFlag(const int f, bool b);
+            bool isFlag(const int f) const { return (FLAGS.word & (1u << f)) != 0; };
+            void setFlag(const int f, const bool b);
 
             // Debug dumps all registers to stdout
             void dumpRegs() const;

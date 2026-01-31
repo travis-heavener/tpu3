@@ -46,6 +46,7 @@ namespace tpu {
                 case inst::SB: executeSB(*this, mem); break;
                 case inst::PUSH: executePUSH(*this, mem); break;
                 case inst::POP: executePOP(*this, mem); break;
+                case inst::BUF: executeBUF(*this, mem); break;
                 default:
                     throw tpu::InvalidInstructionException( std::to_string(static_cast<u8>(instruction)) );
             }
@@ -197,7 +198,7 @@ namespace tpu {
         return mem.readDWord( ESP.dword ).dword;
     }
 
-    void TPU::setFlag(const int f, bool b) {
+    void TPU::setFlag(const int f, const bool b) {
         if (b)
             FLAGS.word |= (1u << f);
         else
@@ -222,6 +223,10 @@ namespace tpu {
 
         // 16-bit regs
         std::printf("FLAGS: 0b%016b\n", FLAGS.word);
+        std::printf(
+            "  CARRY: %d  PARITY: %d  ZERO: %d  SIGN: %d  OVERFLOW: %d\n",
+            isFlag(FLAG_CARRY), isFlag(FLAG_PARITY), isFlag(FLAG_ZERO), isFlag(FLAG_SIGN), isFlag(FLAG_OVERFLOW)
+        );
 
         // 8-bit regs/flags
         std::printf("MODE: %d\n", (isInKernelMode ? 1 : 0));
