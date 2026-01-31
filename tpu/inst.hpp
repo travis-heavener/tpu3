@@ -28,6 +28,8 @@ namespace tpu {
     void executeMOV(TPU&, Memory&);
     void executeLB(TPU&, Memory&);
     void executeSB(TPU&, Memory&);
+    void executePUSH(TPU&, Memory&);
+    void executePOP(TPU&, Memory&);
 
 }
 

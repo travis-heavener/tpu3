@@ -63,6 +63,14 @@ namespace tpu {
             // Separate method to bypass IP write checks in setReg32
             void setIP(const u32 n) { IP.dword = n; };
 
+            // Push/pop shorthands
+            void pushByte(Memory& mem, const u8 b);
+            void pushWord(Memory& mem, const u16 w);
+            void pushDWord(Memory& mem, const u32 dw);
+            u8 popByte(Memory& mem);
+            u16 popWord(Memory& mem);
+            u32 popDWord(Memory& mem);
+
             u8 readReg8(const RegCode) const;
             u16 readReg16(const RegCode) const;
             u32 readReg32(const RegCode) const;

@@ -76,4 +76,54 @@ namespace tpu {
         }
     }
 
+    void executePUSH(TPU& tpu, Memory& mem) {
+        const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
+        switch (MOD) {
+            // reg8
+            case 0: tpu.pushByte( mem, tpu.readReg8( tpu.nextReg(mem) ) ); break;
+            // imm8
+            case 1: tpu.pushByte( mem, tpu.nextByte(mem) ); break;
+            // reg16
+            case 2: tpu.pushWord( mem, tpu.readReg16( tpu.nextReg(mem) ) ); break;
+            // imm16
+            case 3: tpu.pushWord( mem, tpu.nextWord(mem).word ); break;
+            // reg32
+            case 4: tpu.pushDWord( mem, tpu.readReg32( tpu.nextReg(mem) ) ); break;
+            // imm32
+            case 5: tpu.pushDWord( mem, tpu.nextDWord(mem).dword ); break;
+            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for PUSH-like.");
+        }
+    }
+
+    void executePOP(TPU& tpu, Memory& mem) {
+        const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
+        switch (MOD) {
+            // reg8
+            case 0: {
+                RegCode regA = tpu.nextReg(mem);
+                tpu.setReg8( regA, tpu.popByte(mem) );
+                break;
+            }
+            // <no dest, pop byte>
+            case 1: tpu.popByte(mem); break;
+            // reg16
+            case 2: {
+                RegCode regA = tpu.nextReg(mem);
+                tpu.setReg16( regA, tpu.popWord(mem) );
+                break;
+            }
+            // <no dest, pop word>
+            case 3: tpu.popWord(mem); break;
+            // reg32
+            case 4: {
+                RegCode regA = tpu.nextReg(mem);
+                tpu.setReg32( regA, tpu.popDWord(mem) );
+                break;
+            }
+            // <no dest, pop dword>
+            case 5: tpu.popDWord(mem); break;
+            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for PUSH-like.");
+        }
+    }
+
 }

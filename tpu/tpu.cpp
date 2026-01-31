@@ -44,6 +44,8 @@ namespace tpu {
                 case inst::MOV: executeMOV(*this, mem); break;
                 case inst::LB: executeLB(*this, mem); break;
                 case inst::SB: executeSB(*this, mem); break;
+                case inst::PUSH: executePUSH(*this, mem); break;
+                case inst::POP: executePOP(*this, mem); break;
                 default:
                     throw tpu::InvalidInstructionException( std::to_string(static_cast<u8>(instruction)) );
             }
@@ -161,8 +163,38 @@ namespace tpu {
             case RegCode::EDI: return this->EDI.dword;
             case RegCode::IP:  return this->IP.dword;
             default:
-                throw InvalidRegCodeException("setReg32: " + std::to_string(static_cast<int>(rc)));
+                throw InvalidRegCodeException("readReg32: " + std::to_string(static_cast<int>(rc)));
         }
+    }
+
+    void TPU::pushByte(Memory& mem, const u8 b) {
+        mem.setByte( ESP.dword, b );
+        ++ESP.dword;
+    }
+
+    void TPU::pushWord(Memory& mem, const u16 w) {
+        mem.setWord( ESP.dword, w );
+        ESP.dword += 2;
+    }
+
+    void TPU::pushDWord(Memory& mem, const u32 dw) {
+        mem.setDWord( ESP.dword, dw );
+        ESP.dword += 4;
+    }
+
+    u8 TPU::popByte(Memory& mem) {
+        --ESP.dword;
+        return mem.readByte( ESP.dword );
+    }
+
+    u16 TPU::popWord(Memory& mem) {
+        ESP.dword -= 2;
+        return mem.readWord( ESP.dword ).word;
+    }
+
+    u32 TPU::popDWord(Memory& mem) {
+        ESP.dword -= 4;
+        return mem.readDWord( ESP.dword ).dword;
     }
 
     void TPU::setFlag(const int f, bool b) {
