@@ -15,8 +15,8 @@ namespace tpu {
     }
 
     void executeJMP(TPU& tpu, Memory& mem) {
-        u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
-        u32 addr = tpu.nextDWord(mem).dword;
+        const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
+        const u32 addr = tpu.nextDWord(mem).dword;
         switch (MOD) {
             // jmp
             case 0: tpu.setIP(addr); break;
@@ -28,13 +28,13 @@ namespace tpu {
             case 3: if (tpu.isFlag(FLAG_CARRY)) tpu.setIP(addr); break;
             // jnc
             case 4: if (!tpu.isFlag(FLAG_CARRY)) tpu.setIP(addr); break;
-            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for MOV.");
+            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for JMP-like.");
         }
     }
 
     void executeMOV(TPU& tpu, Memory& mem) {
-        u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
-        RegCode regA = tpu.nextReg(mem);
+        const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
+        const RegCode regA = tpu.nextReg(mem);
         switch (MOD) {
             // reg8, imm8
             case 0: tpu.setReg8( regA, tpu.nextByte(mem) ); break;
@@ -49,6 +49,18 @@ namespace tpu {
             // reg32, reg32
             case 5: tpu.setReg32( regA, tpu.readReg32(tpu.nextReg(mem)) ); break;
             default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for MOV.");
+        }
+    }
+
+    void executeLB(TPU& tpu, Memory& mem) {
+        const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
+        const RegCode regA = tpu.nextReg(mem);
+        const u32 addr = tpu.nextDWord(mem).dword;
+        switch (MOD) {
+            case 0: tpu.setReg8( regA, mem.readByte(addr) ); break;
+            case 1: tpu.setReg16( regA, mem.readWord(addr).word ); break;
+            case 2: tpu.setReg32( regA, mem.readDWord(addr).dword ); break;
+            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for LB/LW/LDW.");
         }
     }
 

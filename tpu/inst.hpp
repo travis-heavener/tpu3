@@ -26,6 +26,7 @@ namespace tpu {
     void executeRET(TPU&, Memory&);
     void executeJMP(TPU&, Memory&);
     void executeMOV(TPU&, Memory&);
+    void executeLB(TPU&, Memory&);
 
 }
 

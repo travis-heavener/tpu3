@@ -31,7 +31,11 @@ if __name__ == "__main__":
         f.write(b"\x07\x03\x0E\x0B") # <-- mov DH, CL
         f.write(b"\x07\x04\x01\x12") # <-- mov AX, SP
         f.write(b"\x07\x05\x08\x10") # <-- mov ECX, IP
-        f.write(b"\x06\x00\xEF\xBE\x00\x00") # <-- jmp <0x0000BEEF> (loop)
+        # f.write(b"\x06\x00\xEF\xBE\x00\x00") # <-- jmp <0x0000BEEF> (loop)
+        f.write(b"\x07\x02\x17\x77\x77\x77\x77") # <-- mov EDI, 0x77777777
+        f.write(b"\x08\x00\x07\x00\x00\x00\x00") # <-- lb BL, 0x0
+        f.write(b"\x08\x01\x16\x00\x00\x00\x00") # <-- lw SI, 0x0
+        f.write(b"\x08\x02\x17\x00\x00\x00\x00") # <-- ldw EDI, 0x0
         f.write(b"\x01") # <-- HLT
 
     print("Successfully built TPU image at:", argv[1])
