@@ -207,17 +207,17 @@ namespace tpu {
     // Debug dump all registers to stdout
     void TPU::dumpRegs() const {
         // 32-bit regs
-        std::printf("EAX: 0x%08x\n", EAX.dword);
-        std::printf("EBX: 0x%08x\n", EBX.dword);
-        std::printf("ECX: 0x%08x\n", ECX.dword);
-        std::printf("EDX: 0x%08x\n", EDX.dword);
+        std::printf("EAX: 0x%08x    AX: 0x%04x    AH: 0x%02x    AL: 0x%02x\n", EAX.dword, EAX.lword, EAX.lreg16.hbyte, EAX.lreg16.lbyte);
+        std::printf("EBX: 0x%08x    BX: 0x%04x    BH: 0x%02x    BL: 0x%02x\n", EBX.dword, EBX.lword, EBX.lreg16.hbyte, EBX.lreg16.lbyte);
+        std::printf("ECX: 0x%08x    CX: 0x%04x    CH: 0x%02x    CL: 0x%02x\n", ECX.dword, ECX.lword, ECX.lreg16.hbyte, ECX.lreg16.lbyte);
+        std::printf("EDX: 0x%08x    DX: 0x%04x    DH: 0x%02x    DL: 0x%02x\n", EDX.dword, EDX.lword, EDX.lreg16.hbyte, EDX.lreg16.lbyte);
 
         std::printf("IP:  0x%08x\n", IP.dword);
         std::printf("RP:  0x%08x\n", RP.dword);
-        std::printf("SP:  0x%08x\n", ESP.dword);
-        std::printf("BP:  0x%08x\n", EBP.dword);
-        std::printf("SI:  0x%08x\n", ESI.dword);
-        std::printf("DI:  0x%08x\n", EDI.dword);
+        std::printf("ESP: 0x%08x    SP: 0x%04x\n", ESP.dword, ESP.lword);
+        std::printf("EBP: 0x%08x    BP: 0x%04x\n", EBP.dword, EBP.lword);
+        std::printf("ESI: 0x%08x    SI: 0x%04x\n", ESI.dword, ESI.lword);
+        std::printf("EDI: 0x%08x    DI: 0x%04x\n", EDI.dword, EDI.lword);
 
         // 16-bit regs
         std::printf("FLAGS: 0b%016b\n", FLAGS.word);
