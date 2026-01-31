@@ -16,8 +16,8 @@ The following table depicts the complete instruction set for the 32-bit TPU3 arc
 | jc            | label |    -- |   0x06 |        3 |      -- | Moves the IP to the label's address, if the carry flag (CF) is set. |
 | jnc           | label |    -- |   0x06 |        4 |      -- | Moves the IP to the label's address, if the carry flag (CF) is cleared. |
 | mov           |  reg8 |  imm8 |   0x07 |        0 |      -- | Moves an immediate 8-bit value into an 8-bit register. |
-| movw          | imm16 | imm16 |   0x07 |        1 |      -- | Moves an immediate 16-bit value into a 16-bit register. |
-| movdw         | imm32 | imm32 |   0x07 |        2 |      -- | Moves an immediate 32-bit value into a 32-bit register. |
+| movw          | reg16 | imm16 |   0x07 |        1 |      -- | Moves an immediate 16-bit value into a 16-bit register. |
+| movdw         | reg32 | imm32 |   0x07 |        2 |      -- | Moves an immediate 32-bit value into a 32-bit register. |
 | mov           |  reg8 |  reg8 |   0x07 |        3 |      -- | Moves an 8-bit value between two 8-bit registers. |
 | movw          | reg16 | reg16 |   0x07 |        4 |      -- | Moves a 16-bit value between two 16-bit registers. |
 | movdw         | reg32 | reg32 |   0x07 |        5 |      -- | Moves a 32-bit value between two 32-bit registers. |
