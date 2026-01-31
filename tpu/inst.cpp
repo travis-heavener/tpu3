@@ -289,6 +289,8 @@ namespace tpu {
     BITWISE_EXECUTE_OP(OR, |);
     BITWISE_EXECUTE_OP(XOR, ^);
 
+    #undef BITWISE_EXECUTE_OP
+
     void executeNOT(TPU& tpu, Memory& mem) {
         const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
         const RegCode regA = tpu.nextReg(mem);
