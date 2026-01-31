@@ -207,6 +207,7 @@ namespace tpu {
     // Debug dump all registers to stdout
     void TPU::dumpRegs() const {
         // 32-bit regs
+        std::printf("-------------------------=| REG DUMP |=-------------------------\n");
         std::printf("EAX: 0x%08x    AX: 0x%04x    AH: 0x%02x    AL: 0x%02x\n", EAX.dword, EAX.lword, EAX.lreg16.hbyte, EAX.lreg16.lbyte);
         std::printf("EBX: 0x%08x    BX: 0x%04x    BH: 0x%02x    BL: 0x%02x\n", EBX.dword, EBX.lword, EBX.lreg16.hbyte, EBX.lreg16.lbyte);
         std::printf("ECX: 0x%08x    CX: 0x%04x    CH: 0x%02x    CL: 0x%02x\n", ECX.dword, ECX.lword, ECX.lreg16.hbyte, ECX.lreg16.lbyte);
