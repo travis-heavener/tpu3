@@ -1,4 +1,4 @@
-.PHONY: init
+.PHONY: init all
 
 # Build targets
 BIN_TPU := bin/tpu
@@ -7,6 +7,8 @@ BIN_TASM := bin/tasm
 # Sources
 HDR_TPU := $(shell find ./tpu/ -type f -name "*.hpp")
 SRC_TPU := $(shell find ./tpu/ -type f -name "*.cpp")
+
+all: tpu tasm
 
 ################################################################
 ########################## TPU Itself ##########################
