@@ -24,7 +24,9 @@ namespace tpu {
         AND     = 0x22,
         OR      = 0x23,
         XOR     = 0x24,
-        NOT     = 0x25
+        NOT     = 0x25,
+        ADD     = 0x2A,
+        SUB     = 0x2B
     };
 
     // Instruction handler methods
@@ -42,6 +44,8 @@ namespace tpu {
     void executeOR(TPU&, Memory&);
     void executeXOR(TPU&, Memory&);
     void executeNOT(TPU&, Memory&);
+    // void executeADD(TPU&, Memory&);
+    // void executeSUB(TPU&, Memory&);
 
 }
 

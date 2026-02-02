@@ -18,16 +18,11 @@ namespace tpu {
         const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
         const u32 addr = tpu.nextDWord(mem).dword;
         switch (MOD) {
-            // jmp
-            case 0: tpu.setIP(addr); break;
-            // jz
-            case 1: if (tpu.isFlag(FLAG_ZERO)) tpu.setIP(addr); break;
-            // jnz
-            case 2: if (!tpu.isFlag(FLAG_ZERO)) tpu.setIP(addr); break;
-            // jc
-            case 3: if (tpu.isFlag(FLAG_CARRY)) tpu.setIP(addr); break;
-            // jnc
-            case 4: if (!tpu.isFlag(FLAG_CARRY)) tpu.setIP(addr); break;
+            /* jmp */ case 0: tpu.setIP(addr); break;
+            /* jz */  case 1: if (tpu.isFlag(FLAG_ZERO)) tpu.setIP(addr); break;
+            /* jnz */ case 2: if (!tpu.isFlag(FLAG_ZERO)) tpu.setIP(addr); break;
+            /* jc */  case 3: if (tpu.isFlag(FLAG_CARRY)) tpu.setIP(addr); break;
+            /* jnc */ case 4: if (!tpu.isFlag(FLAG_CARRY)) tpu.setIP(addr); break;
             default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for JMP-like.");
         }
     }
@@ -36,18 +31,12 @@ namespace tpu {
         const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
         const RegCode regA = tpu.nextReg(mem);
         switch (MOD) {
-            // reg8, imm8
-            case 0: tpu.setReg8( regA, tpu.nextByte(mem) ); break;
-            // reg16, imm16
-            case 1: tpu.setReg16( regA, tpu.nextWord(mem).word ); break;
-            // reg32, imm32
-            case 2: tpu.setReg32( regA, tpu.nextDWord(mem).dword ); break;
-            // reg8, reg8
-            case 3: tpu.setReg8( regA, tpu.readReg8(tpu.nextReg(mem)) ); break;
-            // reg16, reg16
-            case 4: tpu.setReg16( regA, tpu.readReg16(tpu.nextReg(mem)) ); break;
-            // reg32, reg32
-            case 5: tpu.setReg32( regA, tpu.readReg32(tpu.nextReg(mem)) ); break;
+            /* reg8, imm8 */   case 0: tpu.setReg8( regA, tpu.nextByte(mem) ); break;
+            /* reg16, imm16 */ case 1: tpu.setReg16( regA, tpu.nextWord(mem).word ); break;
+            /* reg32, imm32 */ case 2: tpu.setReg32( regA, tpu.nextDWord(mem).dword ); break;
+            /* reg8, reg8 */   case 3: tpu.setReg8( regA, tpu.readReg8(tpu.nextReg(mem)) ); break;
+            /* reg16, reg16 */ case 4: tpu.setReg16( regA, tpu.readReg16(tpu.nextReg(mem)) ); break;
+            /* reg32, reg32 */ case 5: tpu.setReg32( regA, tpu.readReg32(tpu.nextReg(mem)) ); break;
             default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for MOV.");
         }
     }
@@ -79,18 +68,12 @@ namespace tpu {
     void executePUSH(TPU& tpu, Memory& mem) {
         const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
         switch (MOD) {
-            // reg8
-            case 0: tpu.pushByte( mem, tpu.readReg8( tpu.nextReg(mem) ) ); break;
-            // imm8
-            case 1: tpu.pushByte( mem, tpu.nextByte(mem) ); break;
-            // reg16
-            case 2: tpu.pushWord( mem, tpu.readReg16( tpu.nextReg(mem) ) ); break;
-            // imm16
-            case 3: tpu.pushWord( mem, tpu.nextWord(mem).word ); break;
-            // reg32
-            case 4: tpu.pushDWord( mem, tpu.readReg32( tpu.nextReg(mem) ) ); break;
-            // imm32
-            case 5: tpu.pushDWord( mem, tpu.nextDWord(mem).dword ); break;
+            /* reg8 */   case 0: tpu.pushByte( mem, tpu.readReg8( tpu.nextReg(mem) ) ); break;
+            /* imm8 */   case 1: tpu.pushByte( mem, tpu.nextByte(mem) ); break;
+            /* reg16 */  case 2: tpu.pushWord( mem, tpu.readReg16( tpu.nextReg(mem) ) ); break;
+            /* imm16 */  case 3: tpu.pushWord( mem, tpu.nextWord(mem).word ); break;
+            /* reg32 */  case 4: tpu.pushDWord( mem, tpu.readReg32( tpu.nextReg(mem) ) ); break;
+            /* imm32 */  case 5: tpu.pushDWord( mem, tpu.nextDWord(mem).dword ); break;
             default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for PUSH-like.");
         }
     }
@@ -210,6 +193,9 @@ namespace tpu {
         }
     }
 
+    // Macrodef for frequently used structure
+    // BITWISE operations ONLY, works similarly to arithmetic
+    // but does NOT set CARRY or OVERFLOW flags
     #define BITWISE_EXECUTE_OP(name, op) \
         void execute##name(TPU& tpu, Memory& mem) { \
             const u8 MOD = 0b111 & tpu.nextByte(mem); /* Read MOD byte */ \
@@ -304,5 +290,7 @@ namespace tpu {
             default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for NOT.");
         }
     }
+
+    /********************* ARITHMETIC INSTRUCTIONS *********************/
 
 }
