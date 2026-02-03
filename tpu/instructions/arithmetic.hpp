@@ -1,7 +1,6 @@
 #ifndef __TPU_INSTRUCTIONS_ARITHMETIC_HPP
 #define __TPU_INSTRUCTIONS_ARITHMETIC_HPP
 
-#include "../tools.hpp"
 #include "../tpu.hpp"
 
 namespace tpu {

@@ -1,5 +1,7 @@
 #include "arithmetic.hpp"
 
+#include "../tools.hpp"
+
 #define IS_SIGN_SET_8(arg) ((arg & 0x80) != 0)
 #define IS_SIGN_SET_16(arg) ((arg & 0x8000) != 0)
 #define IS_SIGN_SET_32(arg) ((arg & 0x8000'0000) != 0)

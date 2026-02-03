@@ -3,7 +3,9 @@
 
 #include "../tools.hpp"
 #include "../tpu.hpp"
+
 #include "arithmetic.hpp"
+#include "bitwise.hpp"
 
 namespace tpu {
 
@@ -39,12 +41,6 @@ namespace tpu {
     void executeSB(TPU&, Memory&);
     void executePUSH(TPU&, Memory&);
     void executePOP(TPU&, Memory&);
-    void executeBUF(TPU&, Memory&);
-    void executeCMP(TPU&, Memory&);
-    void executeAND(TPU&, Memory&);
-    void executeOR(TPU&, Memory&);
-    void executeXOR(TPU&, Memory&);
-    void executeNOT(TPU&, Memory&);
 
 }
 
