@@ -78,27 +78,27 @@ The following table depicts the complete instruction set for the 32-bit TPU3 arc
 | not           |  reg8 |    -- |   0x25 |        0 |      -- | Bitwise NOT on an 8-bit register, stored in place. |
 | not           | reg16 |    -- |   0x25 |        1 |      -- | Bitwise NOT on a 16-bit register, stored in place. |
 | not           | reg32 |    -- |   0x25 |        2 |      -- | Bitwise NOT on a 32-bit register, stored in place. |
-| add           |  reg8 |  imm8 |   0x2A |        0 |       U | Unsigned-adds an 8-bit register and imm8, stored in first operand. |
-| add           | reg16 | imm16 |   0x2A |        1 |       U | Unsigned-adds a 16-bit register and imm16, stored in first operand. |
-| add           | reg32 | imm32 |   0x2A |        2 |       U | Unsigned-adds a 32-bit register and imm32, stored in first operand. |
-| add           |  reg8 |  reg8 |   0x2A |        3 |       U | Unsigned-adds two 8-bit registers, stored in first operand. |
-| add           | reg16 | reg16 |   0x2A |        4 |       U | Unsigned-adds two 16-bit registers, stored in first operand. |
-| add           | reg32 | reg32 |   0x2A |        5 |       U | Unsigned-adds two 32-bit registers, stored in first operand. |
-| sadd          |  reg8 |  imm8 |   0x2A |        0 |       S | Signed-adds an 8-bit register and imm8, stored in first operand. |
-| sadd          | reg16 | imm16 |   0x2A |        1 |       S | Signed-adds a 16-bit register and imm16, stored in first operand. |
-| sadd          | reg32 | imm32 |   0x2A |        2 |       S | Signed-adds a 32-bit register and imm32, stored in first operand. |
-| sadd          |  reg8 |  reg8 |   0x2A |        3 |       S | Signed-adds two 8-bit registers, stored in first operand. |
-| sadd          | reg16 | reg16 |   0x2A |        4 |       S | Signed-adds two 16-bit registers, stored in first operand. |
-| sadd          | reg32 | reg32 |   0x2A |        5 |       S | Signed-adds two 32-bit registers, stored in first operand. |
-| sub           |  reg8 |  imm8 |   0x2B |        0 |       U | Unsigned-subtracts an imm8 from an 8-bit register, stored in first operand. |
-| sub           | reg16 | imm16 |   0x2B |        1 |       U | Unsigned-subtracts an imm16 from a 16-bit register, stored in first operand. |
-| sub           | reg32 | imm32 |   0x2B |        2 |       U | Unsigned-subtracts an imm32 from a 32-bit register, stored in first operand. |
-| sub           |  reg8 |  reg8 |   0x2B |        3 |       U | Unsigned-subtracts the second 8-bit register from the first, stored in first operand. |
-| sub           | reg16 | reg16 |   0x2B |        4 |       U | Unsigned-subtracts the second 16-bit register from the first, stored in first operand. |
-| sub           | reg32 | reg32 |   0x2B |        5 |       U | Unsigned-subtracts the second 32-bit register from the first, stored in first operand. |
-| ssub          |  reg8 |  imm8 |   0x2B |        0 |       S | Signed-subtracts an imm8 from an 8-bit register, stored in first operand. |
-| ssub          | reg16 | imm16 |   0x2B |        1 |       S | Signed-subtracts an imm16 from a 16-bit register, stored in first operand. |
-| ssub          | reg32 | imm32 |   0x2B |        2 |       S | Signed-subtracts an imm32 from a 32-bit register, stored in first operand. |
-| ssub          |  reg8 |  reg8 |   0x2B |        3 |       S | Signed-subtracts the second 8-bit register from the first, stored in first operand. |
-| ssub          | reg16 | reg16 |   0x2B |        4 |       S | Signed-subtracts the second 16-bit register from the first, stored in first operand. |
-| ssub          | reg32 | reg32 |   0x2B |        5 |       S | Signed-subtracts the second 32-bit register from the first, stored in first operand. |
+| add           |  reg8 |  imm8 |   0x2A |        0 |  No (0) | Unsigned-adds an 8-bit register and imm8, stored in first operand. |
+| add           | reg16 | imm16 |   0x2A |        1 |  No (0) | Unsigned-adds a 16-bit register and imm16, stored in first operand. |
+| add           | reg32 | imm32 |   0x2A |        2 |  No (0) | Unsigned-adds a 32-bit register and imm32, stored in first operand. |
+| add           |  reg8 |  reg8 |   0x2A |        3 |  No (0) | Unsigned-adds two 8-bit registers, stored in first operand. |
+| add           | reg16 | reg16 |   0x2A |        4 |  No (0) | Unsigned-adds two 16-bit registers, stored in first operand. |
+| add           | reg32 | reg32 |   0x2A |        5 |  No (0) | Unsigned-adds two 32-bit registers, stored in first operand. |
+| sadd          |  reg8 |  imm8 |   0x2A |        0 | Yes (1) | Signed-adds an 8-bit register and imm8, stored in first operand. |
+| sadd          | reg16 | imm16 |   0x2A |        1 | Yes (1) | Signed-adds a 16-bit register and imm16, stored in first operand. |
+| sadd          | reg32 | imm32 |   0x2A |        2 | Yes (1) | Signed-adds a 32-bit register and imm32, stored in first operand. |
+| sadd          |  reg8 |  reg8 |   0x2A |        3 | Yes (1) | Signed-adds two 8-bit registers, stored in first operand. |
+| sadd          | reg16 | reg16 |   0x2A |        4 | Yes (1) | Signed-adds two 16-bit registers, stored in first operand. |
+| sadd          | reg32 | reg32 |   0x2A |        5 | Yes (1) | Signed-adds two 32-bit registers, stored in first operand. |
+| sub           |  reg8 |  imm8 |   0x2B |        0 |  No (0) | Unsigned-subtracts an imm8 from an 8-bit register, stored in first operand. |
+| sub           | reg16 | imm16 |   0x2B |        1 |  No (0) | Unsigned-subtracts an imm16 from a 16-bit register, stored in first operand. |
+| sub           | reg32 | imm32 |   0x2B |        2 |  No (0) | Unsigned-subtracts an imm32 from a 32-bit register, stored in first operand. |
+| sub           |  reg8 |  reg8 |   0x2B |        3 |  No (0) | Unsigned-subtracts the second 8-bit register from the first, stored in first operand. |
+| sub           | reg16 | reg16 |   0x2B |        4 |  No (0) | Unsigned-subtracts the second 16-bit register from the first, stored in first operand. |
+| sub           | reg32 | reg32 |   0x2B |        5 |  No (0) | Unsigned-subtracts the second 32-bit register from the first, stored in first operand. |
+| ssub          |  reg8 |  imm8 |   0x2B |        0 | Yes (1) | Signed-subtracts an imm8 from an 8-bit register, stored in first operand. |
+| ssub          | reg16 | imm16 |   0x2B |        1 | Yes (1) | Signed-subtracts an imm16 from a 16-bit register, stored in first operand. |
+| ssub          | reg32 | imm32 |   0x2B |        2 | Yes (1) | Signed-subtracts an imm32 from a 32-bit register, stored in first operand. |
+| ssub          |  reg8 |  reg8 |   0x2B |        3 | Yes (1) | Signed-subtracts the second 8-bit register from the first, stored in first operand. |
+| ssub          | reg16 | reg16 |   0x2B |        4 | Yes (1) | Signed-subtracts the second 16-bit register from the first, stored in first operand. |
+| ssub          | reg32 | reg32 |   0x2B |        5 | Yes (1) | Signed-subtracts the second 32-bit register from the first, stored in first operand. |
