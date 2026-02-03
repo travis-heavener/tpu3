@@ -52,6 +52,8 @@ namespace tpu {
                 case inst::OR:      executeOR(*this, mem); break;
                 case inst::XOR:     executeXOR(*this, mem); break;
                 case inst::NOT:     executeNOT(*this, mem); break;
+                case inst::ADD:     executeADD(*this, mem); break;
+                // case inst::SUB:     executeSUB(*this, mem); break;
                 default:
                     throw tpu::InvalidInstructionException( std::to_string(static_cast<u8>(instruction)) );
             }

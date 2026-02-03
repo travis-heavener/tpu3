@@ -52,12 +52,23 @@ if __name__ == "__main__":
         # f.write(b"\x20\x01\x09") # <-- buf CX
         # f.write(b"\x20\x02\x13") # <-- buf EBP
 
-        f.write(b"\x07\x00\x0E\x00") # <-- mov DH, 0
-        f.write(b"\x07\x01\x09\x21\x00") # <-- mov CX, 0x21
-        f.write(b"\x07\x02\x13\xEF\xBE\xAD\xDE") # <-- mov EBP, 0xDEADBEEF
+        # f.write(b"\x07\x00\x0E\x00") # <-- mov DH, 0
+        # f.write(b"\x07\x01\x09\x21\x00") # <-- mov CX, 0x21
+        # f.write(b"\x07\x02\x13\xEF\xBE\xAD\xDE") # <-- mov EBP, 0xDEADBEEF
         # f.write(b"\x21\x00\x0E\xFF")
         # f.write(b"\x21\x01\x09\xDE\xFF")
-        f.write(b"\x21\x02\x13\x10\x41\x52\x21")
+        # f.write(b"\x21\x02\x13\x10\x41\x52\x21")
+
+        # Test unsigned/sign addition
+        # f.write(b"\x07\x00\x0E\x80") # <-- mov DH, 0x80
+        # f.write(b"\x2A\x00\x0E\x12") # <-- add DH, 0x12
+        # f.write(b"\x2A\x08\x0E\x80") # <-- sadd DH, 0x80
+        # f.write(b"\x07\x01\x09\x21\x80") # <-- mov CX, 0x21
+        # f.write(b"\x2A\x01\x09\x12\x80") # <-- add CX, 0x12
+        # f.write(b"\x2A\x09\x09\x80\x80") # <-- sadd CX, 0x80
+        # f.write(b"\x07\x02\x13\xEF\xBE\xAD\xDE") # <-- mov EBP, 0xDEADBEEF
+        # f.write(b"\x2A\x02\x13\x12\x00\xAD\xDE") # <-- add EBP, 0xDEAD0012
+        # f.write(b"\x2A\x0A\x13\x00\x00\x00\x80") # <-- sadd EBP, 0x80000000
 
         f.write(b"\x01") # <-- HLT
 

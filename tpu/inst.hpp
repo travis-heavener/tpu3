@@ -44,7 +44,7 @@ namespace tpu {
     void executeOR(TPU&, Memory&);
     void executeXOR(TPU&, Memory&);
     void executeNOT(TPU&, Memory&);
-    // void executeADD(TPU&, Memory&);
+    void executeADD(TPU&, Memory&);
     // void executeSUB(TPU&, Memory&);
 
 }

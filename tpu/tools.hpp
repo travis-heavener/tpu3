@@ -6,12 +6,39 @@
 #include <stdexcept>
 #include <string>
 
+#define EXCEPTION_MSG_CLASS(name) \
+    class name : public Exception { \
+        public: \
+            name(const std::string msg) : msg(#name ": " + msg) {}; \
+            const char* what() const noexcept { return msg.c_str(); }; \
+        private: \
+            std::string msg; \
+    };
+
 namespace tpu {
 
+    // Exceptions
+    class Exception : public std::runtime_error {
+        public:
+            Exception() : std::runtime_error("") {};
+            virtual const char* what() const noexcept { return "Base TPUException"; };
+    };
+
+    EXCEPTION_MSG_CLASS(MemoryReadOutOfBoundsException);
+    EXCEPTION_MSG_CLASS(InvalidInstructionException);
+    EXCEPTION_MSG_CLASS(InvalidMODBitsException);
+    EXCEPTION_MSG_CLASS(InvalidRegCodeException);
+
+    // Data types
     typedef uint64_t u64;
     typedef uint32_t u32;
     typedef uint16_t u16;
     typedef uint8_t  u8;
+
+    typedef int64_t s64;
+    typedef int32_t s32;
+    typedef int16_t s16;
+    typedef int8_t  s8;
 
     // Register codes for instructions
     enum class RegCode : u8 {
@@ -60,45 +87,6 @@ namespace tpu {
                 parity = !parity;
         return parity;
     }
-
-    // Exceptions
-    class Exception : public std::runtime_error {
-        public:
-            Exception() : std::runtime_error("") {};
-            virtual const char* what() const noexcept { return "Base TPUException"; };
-    };
-
-    class MemoryReadOutOfBoundsException : public Exception {
-        public:
-            MemoryReadOutOfBoundsException(const std::string msg) : msg("MemoryReadOutOfBoundsException: " + msg) {};
-            const char* what() const noexcept { return msg.c_str(); };
-        private:
-            std::string msg;
-    };
-
-    class InvalidInstructionException : public Exception {
-        public:
-            InvalidInstructionException(const std::string msg) : msg("InvalidInstructionException: " + msg) {};
-            const char* what() const noexcept { return msg.c_str(); };
-        private:
-            std::string msg;
-    };
-
-    class InvalidMODBitsException : public Exception {
-        public:
-            InvalidMODBitsException(const std::string msg) : msg("InvalidMODBitsException: " + msg) {};
-            const char* what() const noexcept { return msg.c_str(); };
-        private:
-            std::string msg;
-    };
-
-    class InvalidRegCodeException : public Exception {
-        public:
-            InvalidRegCodeException(const std::string msg) : msg("InvalidRegCodeException: " + msg) {};
-            const char* what() const noexcept { return msg.c_str(); };
-        private:
-            std::string msg;
-    };
 
 }
 
