@@ -1,8 +1,9 @@
-#ifndef __TPU_INST_HPP
-#define __TPU_INST_HPP
+#ifndef __TPU_INSTRUCTIONS_INSTRUCTIONS_HPP
+#define __TPU_INSTRUCTIONS_INSTRUCTIONS_HPP
 
-#include "tools.hpp"
-#include "tpu.hpp"
+#include "../tools.hpp"
+#include "../tpu.hpp"
+#include "arithmetic.hpp"
 
 namespace tpu {
 
@@ -29,7 +30,7 @@ namespace tpu {
         SUB     = 0x2B
     };
 
-    // Instruction handler methods
+    // Generic instruction handler methods
     void executeCALL(TPU&, Memory&);
     void executeRET(TPU&, Memory&);
     void executeJMP(TPU&, Memory&);
@@ -44,10 +45,7 @@ namespace tpu {
     void executeOR(TPU&, Memory&);
     void executeXOR(TPU&, Memory&);
     void executeNOT(TPU&, Memory&);
-    void executeADD(TPU&, Memory&);
-    // void executeSUB(TPU&, Memory&);
 
 }
 
 #endif
-

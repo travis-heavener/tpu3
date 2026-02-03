@@ -3,7 +3,7 @@
 #include <string>
 
 #include "tpu.hpp"
-#include "inst.hpp"
+#include "instructions/instructions.hpp"
 
 namespace tpu {
     
