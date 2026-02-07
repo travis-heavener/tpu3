@@ -36,27 +36,29 @@ namespace tpu {
             inst instruction = static_cast<inst>( this->nextByte(mem) );
 
             // Switch based on instruction
+            #define EXECUTE_INSTRUCTION(name) case inst::name: execute##name(*this, mem); break
             switch (instruction) {
                 case inst::HLT: return;
-                case inst::CALL:    executeCALL(*this, mem); break;
-                case inst::RET:     executeRET(*this, mem); break;
-                case inst::JMP:     executeJMP(*this, mem); break;
-                case inst::MOV:     executeMOV(*this, mem); break;
-                case inst::LB:      executeLB(*this, mem); break;
-                case inst::SB:      executeSB(*this, mem); break;
-                case inst::PUSH:    executePUSH(*this, mem); break;
-                case inst::POP:     executePOP(*this, mem); break;
-                case inst::BUF:     executeBUF(*this, mem); break;
-                case inst::CMP:     executeCMP(*this, mem); break;
-                case inst::AND:     executeAND(*this, mem); break;
-                case inst::OR:      executeOR(*this, mem); break;
-                case inst::XOR:     executeXOR(*this, mem); break;
-                case inst::NOT:     executeNOT(*this, mem); break;
-                case inst::ADD:     executeADD(*this, mem); break;
-                // case inst::SUB:     executeSUB(*this, mem); break;
+                EXECUTE_INSTRUCTION( CALL );
+                EXECUTE_INSTRUCTION( RET  );
+                EXECUTE_INSTRUCTION( JMP  );
+                EXECUTE_INSTRUCTION( MOV  );
+                EXECUTE_INSTRUCTION( LB   );
+                EXECUTE_INSTRUCTION( SB   );
+                EXECUTE_INSTRUCTION( PUSH );
+                EXECUTE_INSTRUCTION( POP  );
+                EXECUTE_INSTRUCTION( BUF  );
+                EXECUTE_INSTRUCTION( CMP  );
+                EXECUTE_INSTRUCTION( AND  );
+                EXECUTE_INSTRUCTION( OR   );
+                EXECUTE_INSTRUCTION( XOR  );
+                EXECUTE_INSTRUCTION( NOT  );
+                EXECUTE_INSTRUCTION( ADD  );
+                EXECUTE_INSTRUCTION( SUB  );
                 default:
                     throw tpu::InvalidInstructionException( std::to_string(static_cast<u8>(instruction)) );
             }
+            #undef EXECUTE_INSTRUCTION
 
             // TODO - sleep between cycles
         }

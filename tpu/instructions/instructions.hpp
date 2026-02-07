@@ -42,6 +42,10 @@ namespace tpu {
     void executePUSH(TPU&, Memory&);
     void executePOP(TPU&, Memory&);
 
+    // Arithmetic handlers
+    void executeADD(TPU&, Memory&);
+    void executeSUB(TPU&, Memory&);
+
 }
 
 #endif

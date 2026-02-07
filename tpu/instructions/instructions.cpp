@@ -107,4 +107,66 @@ namespace tpu {
         }
     }
 
+    void executeADD(TPU& tpu, Memory& mem) {
+        const u8 controlByte = tpu.nextByte(mem);
+        const u8 MOD = 0b111 & controlByte; // Read MOD bits
+        const bool isSigned = 0b1000 & controlByte;
+        const RegCode regA = tpu.nextReg(mem);
+        switch (MOD) {
+            case 0:   // reg8, imm8
+            case 3: { // reg8, reg8
+                const u8 a = tpu.readReg8(regA);
+                const u8 b = (MOD == 3) ? tpu.readReg8(tpu.nextReg(mem)) : tpu.nextByte(mem);
+                aluADD(tpu, a, b, regA, isSigned);
+                break;
+            }
+            case 1:   // reg16, imm16
+            case 4: { // reg16, reg16
+                const u16 a = tpu.readReg16(regA);
+                const u16 b = (MOD == 4) ? tpu.readReg16(tpu.nextReg(mem)) : tpu.nextWord(mem).word;
+                aluADD(tpu, a, b, regA, isSigned);
+                break;
+            }
+            case 2:   // reg32, imm32
+            case 5: { // reg32, reg32
+                const u32 a = tpu.readReg32(regA);
+                const u32 b = (MOD == 5) ? tpu.readReg32(tpu.nextReg(mem)) : tpu.nextDWord(mem).dword;
+                aluADD(tpu, a, b, regA, isSigned);
+                break;
+            }
+            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for ADD.");
+        }
+    }
+    
+    void executeSUB(TPU& tpu, Memory& mem) {
+        const u8 controlByte = tpu.nextByte(mem);
+        const u8 MOD = 0b111 & controlByte; // Read MOD bits
+        const bool isSigned = 0b1000 & controlByte;
+        const RegCode regA = tpu.nextReg(mem);
+        switch (MOD) {
+            case 0:   // reg8, imm8
+            case 3: { // reg8, reg8
+                const u8 a = tpu.readReg8(regA);
+                const u8 b = (MOD == 3) ? tpu.readReg8(tpu.nextReg(mem)) : tpu.nextByte(mem);
+                aluSUB(tpu, a, b, regA, isSigned);
+                break;
+            }
+            case 1:   // reg16, imm16
+            case 4: { // reg16, reg16
+                const u16 a = tpu.readReg16(regA);
+                const u16 b = (MOD == 4) ? tpu.readReg16(tpu.nextReg(mem)) : tpu.nextWord(mem).word;
+                aluSUB(tpu, a, b, regA, isSigned);
+                break;
+            }
+            case 2:   // reg32, imm32
+            case 5: { // reg32, reg32
+                const u32 a = tpu.readReg32(regA);
+                const u32 b = (MOD == 5) ? tpu.readReg32(tpu.nextReg(mem)) : tpu.nextDWord(mem).dword;
+                aluSUB(tpu, a, b, regA, isSigned);
+                break;
+            }
+            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for SUB.");
+        }
+    }
+
 }
