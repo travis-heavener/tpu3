@@ -8,7 +8,7 @@
 #include "memory.hpp"
 #include "tpu.hpp"
 
-#define MAX_MEMORY_ALLOC 1024 * 1024 * 4 // 4 MiB
+#define MAX_MEMORY_ALLOC 1024 * 1024 * 256 // 256 MiB
 
 #define CERR std::cerr << "Error:\n  "
 
