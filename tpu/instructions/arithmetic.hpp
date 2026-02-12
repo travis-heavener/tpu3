@@ -44,7 +44,7 @@ namespace tpu {
     /*********************************************************************************************/
 
     template<typename U> // Unsigned type
-    void aluADD(TPU& tpu, U a, U b, RegCode dest, bool isSigned) {
+    void aluADD(TPU& tpu, const U a, const U b, const RegCode dest, const bool isSigned) {
         using T = ALUTraits<U>;
         using S = typename T::S; // Signed type
         using SW = typename T::SW; // Signed wider type
@@ -80,7 +80,7 @@ namespace tpu {
     }
 
     template<typename U> // Unsigned type
-    void aluSUB(TPU& tpu, U a, U b, RegCode dest, bool isSigned) {
+    void aluSUB(TPU& tpu, const U a, const U b, const RegCode dest, const bool isSigned) {
         using T = ALUTraits<U>;
         using S = typename T::S; // Signed type
         using UW = typename T::UW; // Wider type
@@ -103,6 +103,38 @@ namespace tpu {
             const S result = static_cast<S>(sa - sb);
 
             T::setReg(tpu, dest, static_cast<U>(result));
+
+            // Flags
+            // Carry flag irrelevant for signed arithmetic
+            tpu.setFlag(FLAG_PARITY, parity<U>(static_cast<U>(result)));
+            tpu.setFlag(FLAG_ZERO, result == 0);
+            tpu.setFlag(FLAG_SIGN, (static_cast<U>(result) & T::SIGN_MASK) != 0);
+            tpu.setFlag(FLAG_OVERFLOW, ((sa ^ sb) & (sa ^ result) & T::SIGN_MASK) != 0 );
+        }
+    }
+
+    // NOTE: aluCMP and aluSUB are effectively the same for signed and unsigned arithmetic
+    //       except that aluSUB stores the result in `dest`, aluCMP discards it
+    template<typename U> // Unsigned type
+    void aluCMP(TPU& tpu, const U a, const U b, const bool isSigned) {
+        using T = ALUTraits<U>;
+        using S = typename T::S; // Signed type
+        using UW = typename T::UW; // Wider type
+
+        if (!isSigned) { // Unsigned
+            const UW full = static_cast<UW>(a) - static_cast<UW>(b);
+            const U result = static_cast<U>(full & T::MAX_MASK);
+
+            // Flags
+            tpu.setFlag(FLAG_CARRY, a < b);
+            tpu.setFlag(FLAG_PARITY, parity<U>(result));
+            tpu.setFlag(FLAG_ZERO, result == 0);
+            tpu.setFlag(FLAG_SIGN, (result & T::SIGN_MASK) != 0);
+            // Overflow flag irrelevant for unsigned arithmetic
+        } else { // Signed
+            const S sa = static_cast<S>(a);
+            const S sb = static_cast<S>(b);
+            const S result = static_cast<S>(sa - sb);
 
             // Flags
             // Carry flag irrelevant for signed arithmetic

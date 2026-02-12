@@ -53,12 +53,18 @@ The following table depicts the complete instruction set for the 32-bit TPU3 arc
 | buf           |  reg8 |    -- |   0x20 |        0 |      -- | Updates flags according to the value in an 8-bit register. |
 | buf           | reg16 |    -- |   0x20 |        1 |      -- | Updates flags according to the value in a 16-bit register. |
 | buf           | reg32 |    -- |   0x20 |        2 |      -- | Updates flags according to the value in a 32-bit register. |
-| cmp           |  reg8 |  imm8 |   0x21 |        0 |      -- | Compares an 8-bit register and imm8. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
-| cmp           | reg16 | imm16 |   0x21 |        1 |      -- | Compares a 16-bit register and imm16. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
-| cmp           | reg32 | imm32 |   0x21 |        2 |      -- | Compares a 32-bit register and imm32. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
-| cmp           |  reg8 |  reg8 |   0x21 |        3 |      -- | Compares two 8-bit registers. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
-| cmp           | reg16 | reg16 |   0x21 |        4 |      -- | Compares two 16-bit registers. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
-| cmp           | reg32 | reg32 |   0x21 |        5 |      -- | Compares two 32-bit registers. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| cmp           |  reg8 |  imm8 |   0x21 |        0 |  No (0) | Compares an 8-bit register and imm8. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| cmp           | reg16 | imm16 |   0x21 |        1 |  No (0) | Compares a 16-bit register and imm16. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| cmp           | reg32 | imm32 |   0x21 |        2 |  No (0) | Compares a 32-bit register and imm32. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| cmp           |  reg8 |  reg8 |   0x21 |        3 |  No (0) | Compares two 8-bit registers. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| cmp           | reg16 | reg16 |   0x21 |        4 |  No (0) | Compares two 16-bit registers. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| cmp           | reg32 | reg32 |   0x21 |        5 |  No (0) | Compares two 32-bit registers. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| scmp          |  reg8 |  imm8 |   0x21 |        0 | Yes (1) | Signed-compares an 8-bit register and imm8. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| scmp          | reg16 | imm16 |   0x21 |        1 | Yes (1) | Signed-compares a 16-bit register and imm16. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| scmp          | reg32 | imm32 |   0x21 |        2 | Yes (1) | Signed-compares a 32-bit register and imm32. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| scmp          |  reg8 |  reg8 |   0x21 |        3 | Yes (1) | Signed-compares two 8-bit registers. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| scmp          | reg16 | reg16 |   0x21 |        4 | Yes (1) | Signed-compares two 16-bit registers. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
+| scmp          | reg32 | reg32 |   0x21 |        5 | Yes (1) | Signed-compares two 32-bit registers. If A < B, ZF=0 and CF=1; if A == B, ZF=1 and CF=0; if A > B, ZF=0 and CF=1. |
 | and           |  reg8 |  imm8 |   0x22 |        0 |      -- | Bitwise AND between an 8-bit register and imm8, stored in first operand. |
 | and           | reg16 | imm16 |   0x22 |        1 |      -- | Bitwise AND between a 16-bit register and imm16, stored in first operand. |
 | and           | reg32 | imm32 |   0x22 |        2 |      -- | Bitwise AND between a 32-bit register and imm32, stored in first operand. |

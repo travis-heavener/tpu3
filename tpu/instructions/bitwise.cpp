@@ -1,5 +1,6 @@
 #include "instructions.hpp"
 
+#include "arithmetic.hpp"
 #include "../tools.hpp"
 
 namespace tpu {
@@ -43,46 +44,30 @@ namespace tpu {
     }
 
     void executeCMP(TPU& tpu, Memory& mem) {
-        const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
+        const u8 controlByte = tpu.nextByte(mem);
+        const u8 MOD = 0b111 & controlByte; // Read MOD bits
+        const bool isSigned = 0b1000 & controlByte;
         const RegCode regA = tpu.nextReg(mem);
         switch (MOD) {
-            case 0: // reg8, imm8
+            case 0:   // reg8, imm8
             case 3: { // reg8, reg8
-                const u8 valA = tpu.readReg8(regA);
-                const u8 valB = (MOD == 0) ? tpu.nextByte(mem) : tpu.readReg8(tpu.nextReg(mem));
-                const u8 result = valA - valB;
-                const bool signA = (valA & 0x80) != 0, signB = (valB & 0x80) != 0, resSign = (result & 0x80) != 0;
-                tpu.setFlag(FLAG_CARRY, valB > valA);
-                tpu.setFlag(FLAG_PARITY, parity<u8>(result));
-                tpu.setFlag(FLAG_ZERO, result == 0);
-                tpu.setFlag(FLAG_SIGN, resSign);
-                tpu.setFlag(FLAG_OVERFLOW, (signA != signB) && (signA != resSign));
+                const u8 a = tpu.readReg8(regA);
+                const u8 b = (MOD == 3) ? tpu.readReg8(tpu.nextReg(mem)) : tpu.nextByte(mem);
+                aluCMP(tpu, a, b, isSigned);
                 break;
             }
-            case 1: // reg16, imm16
+            case 1:   // reg16, imm16
             case 4: { // reg16, reg16
-                const u16 valA = tpu.readReg16(regA);
-                const u16 valB = (MOD == 1) ? tpu.nextWord(mem).word : tpu.readReg16(tpu.nextReg(mem));
-                const u16 result = valA - valB;
-                const bool signA = (valA & 0x8000) != 0, signB = (valB & 0x8000) != 0, resSign = (result & 0x8000) != 0;
-                tpu.setFlag(FLAG_CARRY, valB > valA);
-                tpu.setFlag(FLAG_PARITY, parity<u16>(result));
-                tpu.setFlag(FLAG_ZERO, result == 0);
-                tpu.setFlag(FLAG_SIGN, resSign);
-                tpu.setFlag(FLAG_OVERFLOW, (signA != signB) && (signA != resSign));
+                const u16 a = tpu.readReg16(regA);
+                const u16 b = (MOD == 4) ? tpu.readReg16(tpu.nextReg(mem)) : tpu.nextWord(mem).word;
+                aluCMP(tpu, a, b, isSigned);
                 break;
             }
-            case 2: // reg32, imm32
+            case 2:   // reg32, imm32
             case 5: { // reg32, reg32
-                const u32 valA = tpu.readReg32(regA);
-                const u32 valB = (MOD == 2) ? tpu.nextDWord(mem).dword : tpu.readReg32(tpu.nextReg(mem));
-                const u32 result = valA - valB;
-                const bool signA = (valA & 0x8000'0000) != 0, signB = (valB & 0x8000'0000) != 0, resSign = (result & 0x8000'0000) != 0;
-                tpu.setFlag(FLAG_CARRY, valB > valA);
-                tpu.setFlag(FLAG_PARITY, parity<u16>(result));
-                tpu.setFlag(FLAG_ZERO, result == 0);
-                tpu.setFlag(FLAG_SIGN, resSign);
-                tpu.setFlag(FLAG_OVERFLOW, (signA != signB) && (signA != resSign));
+                const u32 a = tpu.readReg32(regA);
+                const u32 b = (MOD == 5) ? tpu.readReg32(tpu.nextReg(mem)) : tpu.nextDWord(mem).dword;
+                aluCMP(tpu, a, b, isSigned);
                 break;
             }
             default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for CMP.");
@@ -177,12 +162,9 @@ namespace tpu {
         const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
         const RegCode regA = tpu.nextReg(mem);
         switch (MOD) {
-            // reg8
-            case 0: tpu.setReg8( regA, static_cast<u8>(~tpu.readReg8(regA)) ); break;
-            // reg16
-            case 1: tpu.setReg16( regA, static_cast<u16>(~tpu.readReg16(regA)) ); break;
-            // reg32
-            case 2: tpu.setReg32( regA, static_cast<u32>(~tpu.readReg32(regA)) ); break;
+            /* reg8 */  case 0: tpu.setReg8( regA, static_cast<u8>(~tpu.readReg8(regA)) ); break;
+            /* reg16 */ case 1: tpu.setReg16( regA, static_cast<u16>(~tpu.readReg16(regA)) ); break;
+            /* reg32 */ case 2: tpu.setReg32( regA, static_cast<u32>(~tpu.readReg32(regA)) ); break;
             default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for NOT.");
         }
     }
