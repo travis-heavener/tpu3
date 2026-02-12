@@ -19,6 +19,8 @@ The following table depicts the complete instruction set for the 32-bit TPU3 arc
 | jnz           | label |    -- |   0x06 |        2 |      -- | Moves the IP to the label's address, if the zero flag (ZF) is cleared. |
 | jc            | label |    -- |   0x06 |        3 |      -- | Moves the IP to the label's address, if the carry flag (CF) is set. |
 | jnc           | label |    -- |   0x06 |        4 |      -- | Moves the IP to the label's address, if the carry flag (CF) is cleared. |
+| jo            | label |    -- |   0x06 |        5 |      -- | Moves the IP to the label's address, if the overflow flag (OF) is set. |
+| jno           | label |    -- |   0x06 |        6 |      -- | Moves the IP to the label's address, if the overflow flag (OF) is cleared. |
 | mov           |  reg8 |  imm8 |   0x07 |        0 |      -- | Moves an immediate 8-bit value into an 8-bit register. |
 | movw          | reg16 | imm16 |   0x07 |        1 |      -- | Moves an immediate 16-bit value into a 16-bit register. |
 | movdw         | reg32 | imm32 |   0x07 |        2 |      -- | Moves an immediate 32-bit value into a 32-bit register. |

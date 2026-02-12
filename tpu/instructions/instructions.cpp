@@ -21,6 +21,8 @@ namespace tpu {
             /* jnz */ case 2: if (!tpu.isFlag(FLAG_ZERO)) tpu.setIP(addr); break;
             /* jc */  case 3: if (tpu.isFlag(FLAG_CARRY)) tpu.setIP(addr); break;
             /* jnc */ case 4: if (!tpu.isFlag(FLAG_CARRY)) tpu.setIP(addr); break;
+            /* jo */  case 5: if (tpu.isFlag(FLAG_OVERFLOW)) tpu.setIP(addr); break;
+            /* jno */ case 6: if (!tpu.isFlag(FLAG_OVERFLOW)) tpu.setIP(addr); break;
             default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for JMP-like.");
         }
     }
