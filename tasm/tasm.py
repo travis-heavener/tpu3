@@ -70,6 +70,33 @@ if __name__ == "__main__":
         # f.write(b"\x2A\x02\x13\x12\x00\xAD\xDE") # <-- add EBP, 0xDEAD0012
         # f.write(b"\x2A\x0A\x13\x00\x00\x00\x80") # <-- sadd EBP, 0x80000000
 
+        # f.write(b"\x07\x00\x03\x05") # mov AL, 5
+        # f.write(b"\x2C\x00\x0A") # mul AL, 10
+        # f.write(b"\x07\x00\x03\xFF") # mov AL, 0xFF
+        # f.write(b"\x2C\x00\x02") # mul AL, 2
+        # f.write(b"\x07\x00\x03\xF6") # mov AL, 0xF6
+        # f.write(b"\x2C\x08\x02") # smul AL, 2
+        # f.write(b"\x07\x00\x03\x64") # mov AL, 100
+        # f.write(b"\x2C\x08\x02") # smul AL, 2
+
+        # f.write(b"\x07\x01\x01\xE8\x03") # mov AX, 1000
+        # f.write(b"\x2C\x01\x0A\x00") # mul AX, 10
+        # f.write(b"\x07\x01\x01\xE8\x03") # mov AX, 1000
+        # f.write(b"\x2C\x01\xE8\x03") # mul AX, 1000
+        # f.write(b"\x07\x01\x01\x18\xFC") # mov AX, -1000
+        # f.write(b"\x2C\x09\x0A\x00") # smul AX, 10
+        # f.write(b"\x07\x01\x01\x20\x4E") # mov AX, 20000
+        # f.write(b"\x2C\x09\x04\x00") # smul AX, 4
+
+        # f.write(b"\x07\x02\x00\xA0\x86\x01\x00") # mov EAX, 100000
+        # f.write(b"\x2C\x02\x03\x00\x00\x00") # mul EAX, 3
+        # f.write(b"\x07\x02\x00\xFF\xFF\xFF\xFF") # mov EAX, 0xFFFFFFFF
+        # f.write(b"\x2C\x02\x02\x00\x00\x00") # mul EAX, 2
+        # f.write(b"\x07\x02\x00\xC0\xF2\xFC\xFF") # mov EAX, -200000
+        # f.write(b"\x2C\x0A\x03\x00\x00\x00") # smul EAX, 3
+        # f.write(b"\x07\x02\x00\x00\x00\x00\x80") # mov EAX, 0x80000000
+        # f.write(b"\x2C\x0A\xFF\xFF\xFF\xFF") # smul EAX, -1
+
         f.write(b"\x01") # <-- HLT
 
     print("Successfully built TPU image at:", argv[1])

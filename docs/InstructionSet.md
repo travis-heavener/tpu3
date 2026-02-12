@@ -110,3 +110,15 @@ The following table depicts the complete instruction set for the 32-bit TPU3 arc
 | ssub          |  reg8 |  reg8 |   0x2B |        3 | Yes (1) | Signed-subtracts the second 8-bit register from the first, stored in first operand. |
 | ssub          | reg16 | reg16 |   0x2B |        4 | Yes (1) | Signed-subtracts the second 16-bit register from the first, stored in first operand. |
 | ssub          | reg32 | reg32 |   0x2B |        5 | Yes (1) | Signed-subtracts the second 32-bit register from the first, stored in first operand. |
+| mul           |  imm8 |    -- |   0x2C |        0 |  No (0) | Unsigned-multiplies the AL register by an imm8, storing the result in the AX register. |
+| mul           | imm16 |    -- |   0x2C |        1 |  No (0) | Unsigned-multiplies the AX register by an imm16, storing the result in the EAX register. |
+| mul           | imm32 |    -- |   0x2C |        2 |  No (0) | Unsigned-multiplies the EAX register by an imm32, storing the lower half of the result in EAX and the upper half in EDX. |
+| mul           |  reg8 |    -- |   0x2C |        3 |  No (0) | Unsigned-multiplies the AL register by a reg8, storing the result in the AX register. |
+| mul           | reg16 |    -- |   0x2C |        4 |  No (0) | Unsigned-multiplies the AX register by a reg6, storing the result in the EAX register. |
+| mul           | reg32 |    -- |   0x2C |        5 |  No (0) | Unsigned-multiplies the EAX register by a reg32, storing the lower half of the result in EAX and the upper half in EDX. |
+| smul          |  imm8 |    -- |   0x2C |        0 | Yes (1) | Signed-multiplies the AL register by an imm8, storing the result in the AX register. |
+| smul          | imm16 |    -- |   0x2C |        1 | Yes (1) | Signed-multiplies the AX register by an imm16, storing the result in the EAX register. |
+| smul          | imm32 |    -- |   0x2C |        2 | Yes (1) | Signed-multiplies the EAX register by an imm32, storing the lower half of the result in EAX and the upper half in EDX. |
+| smul          |  reg8 |    -- |   0x2C |        3 | Yes (1) | Signed-multiplies the AL register by a reg8, storing the result in the AX register. |
+| smul          | reg16 |    -- |   0x2C |        4 | Yes (1) | Signed-multiplies the AX register by a reg6, storing the result in the EAX register. |
+| smul          | reg32 |    -- |   0x2C |        5 | Yes (1) | Signed-multiplies the EAX register by a reg32, storing the lower half of the result in EAX and the upper half in EDX. |

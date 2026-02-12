@@ -29,7 +29,8 @@ namespace tpu {
         XOR     = 0x24,
         NOT     = 0x25,
         ADD     = 0x2A,
-        SUB     = 0x2B
+        SUB     = 0x2B,
+        MUL     = 0x2C
     };
 
     // Generic instruction handler methods
@@ -45,6 +46,7 @@ namespace tpu {
     // Arithmetic handlers
     void executeADD(TPU&, Memory&);
     void executeSUB(TPU&, Memory&);
+    void executeMUL(TPU&, Memory&);
 
 }
 

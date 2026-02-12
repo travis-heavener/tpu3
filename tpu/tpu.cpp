@@ -55,6 +55,7 @@ namespace tpu {
                 EXECUTE_INSTRUCTION( NOT  );
                 EXECUTE_INSTRUCTION( ADD  );
                 EXECUTE_INSTRUCTION( SUB  );
+                EXECUTE_INSTRUCTION( MUL  );
                 default:
                     throw tpu::InvalidInstructionException( std::to_string(static_cast<u8>(instruction)) );
             }

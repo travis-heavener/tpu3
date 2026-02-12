@@ -11,6 +11,7 @@ namespace tpu {
 
     template<>
     struct ALUTraits<u8> {
+        static constexpr int nbits = 8;
         using S = s8; using SW = s16;
         using UW = u16;
         static constexpr u8 SIGN_MASK = 0x80;
@@ -21,6 +22,7 @@ namespace tpu {
 
     template<>
     struct ALUTraits<u16> {
+        static constexpr int nbits = 16;
         using S = s16; using SW = s32;
         using UW = u32;
         static constexpr u16 SIGN_MASK = 0x8000;
@@ -31,6 +33,7 @@ namespace tpu {
 
     template<>
     struct ALUTraits<u32> {
+        static constexpr int nbits = 32;
         using S = s32; using SW = s64;
         using UW = u64;
         static constexpr u32 SIGN_MASK = 0x8000'0000;
@@ -145,7 +148,53 @@ namespace tpu {
         }
     }
 
+    template<typename U> // Unsigned type
+    void aluMUL(TPU& tpu, const U a, const U b, const bool isSigned) {
+        using T = ALUTraits<U>;
+        using S = typename T::S; // Signed type
+        using UW = typename T::UW; // Wider type
+        using SW = typename T::SW; // Signed-wider type
+
+        if (!isSigned) { // Unsigned
+            const UW result = static_cast<UW>(a) * static_cast<UW>(b);
+            const U low  = static_cast<U>(result & T::MAX_MASK);
+            const U high = static_cast<U>(result >> T::nbits);
+
+            // Handle the dest reg by the size of the arguments
+            if (T::nbits == 8) {
+                tpu.setReg16(RegCode::AX, result);
+            } else if (T::nbits == 16) {
+                tpu.setReg32(RegCode::EAX, result);
+            } else {
+                tpu.setReg32(RegCode::EAX, low); // Lower half
+                tpu.setReg32(RegCode::EDX, high); // Upper half
+            }
+
+            // Flags
+            tpu.setFlag(FLAG_CARRY, high != 0);
+            tpu.setFlag(FLAG_OVERFLOW, high != 0);
+        } else { // Signed
+            const SW result = static_cast<SW>( static_cast<S>(a) ) * static_cast<SW>( static_cast<S>(b) );
+            const S lowSigned  = static_cast<S>(result);
+            const S highSigned = static_cast<S>(result >> T::nbits);
+
+            // Handle the dest reg by the size of the arguments
+            if (T::nbits == 8) {
+                tpu.setReg16(RegCode::AX, static_cast<UW>(result));
+            } else if (T::nbits == 16) {
+                tpu.setReg32(RegCode::EAX, static_cast<UW>(result));
+            } else {
+                tpu.setReg32(RegCode::EAX, static_cast<U>(lowSigned)); // Lower half
+                tpu.setReg32(RegCode::EDX, static_cast<U>(highSigned)); // Upper half
+            }
+
+            // Flags
+            // Check if sign is preserved
+            tpu.setFlag(FLAG_CARRY, static_cast<SW>(static_cast<S>(result)) != result );
+            tpu.setFlag(FLAG_OVERFLOW, static_cast<SW>(static_cast<S>(result)) != result );
+        }
+    }
+
 }
 
 #endif
-

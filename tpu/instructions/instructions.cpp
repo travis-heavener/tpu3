@@ -171,4 +171,34 @@ namespace tpu {
         }
     }
 
+    void executeMUL(TPU& tpu, Memory& mem) {
+        const u8 controlByte = tpu.nextByte(mem);
+        const u8 MOD = 0b111 & controlByte; // Read MOD bits
+        const bool isSigned = 0b1000 & controlByte;
+        switch (MOD) {
+            case 0:   // imm8
+            case 3: { // reg8
+                const u8 a = tpu.readReg8(RegCode::AL);
+                const u8 b = (MOD == 3) ? tpu.readReg8(tpu.nextReg(mem)) : tpu.nextByte(mem);
+                aluMUL(tpu, a, b, isSigned);
+                break;
+            }
+            case 1:   // imm16
+            case 4: { // reg16
+                const u16 a = tpu.readReg16(RegCode::AX);
+                const u16 b = (MOD == 4) ? tpu.readReg16(tpu.nextReg(mem)) : tpu.nextWord(mem).word;
+                aluMUL(tpu, a, b, isSigned);
+                break;
+            }
+            case 2:   // imm32
+            case 5: { // reg32
+                const u32 a = tpu.readReg32(RegCode::EAX);
+                const u32 b = (MOD == 5) ? tpu.readReg32(tpu.nextReg(mem)) : tpu.nextDWord(mem).dword;
+                aluMUL(tpu, a, b, isSigned);
+                break;
+            }
+            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for MUL.");
+        }
+    }
+
 }
