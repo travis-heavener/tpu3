@@ -13,6 +13,11 @@
 
 namespace tpu {
 
+    enum class TPUMode : u8 {
+        USER = 0,
+        KERNEL = 1
+    };
+
     // Reimplement registers as words
     typedef u8 reg8;
     
@@ -99,7 +104,7 @@ namespace tpu {
 
             // Processor flags
             reg16 FLAGS;
-            bool isInKernelMode; // <-- Single bit, set if in kernel mode, cleared if in user mode
+            TPUMode currentMode;
     };
 
 }

@@ -13,7 +13,7 @@ namespace tpu {
         IP = RP = ESP = EBP = ESI = EDI = {0};
 
         FLAGS = {0};
-        isInKernelMode = false;
+        currentMode = TPUMode::USER;
     }
 
     TPU::~TPU() {
@@ -239,7 +239,7 @@ namespace tpu {
         );
 
         // 8-bit regs/flags
-        std::printf("MODE: %d\n", (isInKernelMode ? 1 : 0));
+        std::printf("MODE: %s\n", (currentMode == TPUMode::USER ? "User" : "Kernel"));
     }
 
 }
