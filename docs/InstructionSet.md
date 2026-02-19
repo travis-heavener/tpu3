@@ -1,6 +1,23 @@
 # Instruction Set
 
-The following table depicts the complete instruction set for the 32-bit TPU3 architecture:
+This file shows the complete instruction set for the 32-bit TPU3 architecture.
+
+Refer to the following diagram for how the specific bits of each instruction are laid out:
+
+| Bits    | Field     |
+|---------|-----------|
+| 0..7    | Opcode    |
+| 8..10   | MOD       |
+| 11      | S (sign)  |
+| 12..15  | Reserved  |
+
+**Visual Diagram:**
+```
+0             7 8    10 11 12          15
+[   OPCODE    ] [ MOD ] [S] [ Reserved ]
+
+Total: 2 bytes (16 bits) + arguments
+```
 
 \* Unimplemented
 
