@@ -26,13 +26,13 @@ Refer to the following diagram for how the specific bits of each instruction are
 | 0..7    | Opcode         |
 | 8..10   | MOD            |
 | 11      | Sign [S]       |
-| 12      | Addr. Mode [M] |
-| 13..15  | Reserved       |
+| 12..13  | Addr. Mode [M] |
+| 14..15  | Reserved       |
 
 **Visual Diagram:**
 ```
-0             7 8    10 11  12 13          15
-[   OPCODE    ] [ MOD ] [S] [M] [ Reserved ]
+0             7 8    10 11  12 13 14        15
+[   OPCODE    ] [ MOD ] [S] [ M ] [ Reserved ]
 
 Total: 2 bytes (16 bits) + arguments
 ```
