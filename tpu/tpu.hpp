@@ -3,13 +3,8 @@
 
 #include <atomic>
 
+#include "defines.hpp"
 #include "memory.hpp"
-
-#define FLAG_CARRY      0
-#define FLAG_PARITY     2
-#define FLAG_ZERO       6
-#define FLAG_SIGN       7
-#define FLAG_OVERFLOW   11
 
 namespace tpu {
 

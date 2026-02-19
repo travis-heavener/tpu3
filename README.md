@@ -20,8 +20,9 @@ The last version of the TPU (see [TPU2](https://github.com/travis-heavener/tpu2)
 
 ## Build Instructions
 
-Run `make init` when you first clone the repository.
-I'll add more instructions once this actually goes somewhere, but there's not a whole lot here (yet).
+1. Run `make init` when you first clone the repository.
+2. Build a TPU image binary to run on the TPU via `bin/tasm path/to/image.tpu`.
+3. Load the image to the TPU and execute it via `bin/tpu path/to/image.tpu`.
 
 ### Directory Layout
 

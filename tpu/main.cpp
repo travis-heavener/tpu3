@@ -5,10 +5,9 @@
 #include <iostream>
 #include <signal.h>
 
+#include "defines.hpp"
 #include "memory.hpp"
 #include "tpu.hpp"
-
-#define MAX_MEMORY_ALLOC 1024 * 1024 * 256 // 256 MiB
 
 #define CERR std::cerr << "Error:\n  "
 
