@@ -47,7 +47,6 @@ namespace tpu {
                 EXECUTE_INSTRUCTION( SB   );
                 EXECUTE_INSTRUCTION( PUSH );
                 EXECUTE_INSTRUCTION( POP  );
-                EXECUTE_INSTRUCTION( BUF  );
                 EXECUTE_INSTRUCTION( CMP  );
                 EXECUTE_INSTRUCTION( AND  );
                 EXECUTE_INSTRUCTION( OR   );

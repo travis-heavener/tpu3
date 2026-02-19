@@ -6,7 +6,6 @@
 namespace tpu {
 
     // Bitwise instruction handler methods
-    void executeBUF(TPU&, Memory&);
     void executeCMP(TPU&, Memory&);
     void executeAND(TPU&, Memory&);
     void executeOR(TPU&, Memory&);

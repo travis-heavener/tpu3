@@ -22,7 +22,6 @@ namespace tpu {
         SB      = 0x09,
         PUSH    = 0x0A,
         POP     = 0x0B,
-        BUF     = 0x20,
         CMP     = 0x21,
         AND     = 0x22,
         OR      = 0x23,

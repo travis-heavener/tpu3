@@ -6,43 +6,6 @@
 namespace tpu {
 
     // Instruction handler methods
-    void executeBUF(TPU& tpu, Memory& mem) {
-        const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
-        switch (MOD) {
-            // reg8
-            case 0: {
-                const u8 n = tpu.readReg8( tpu.nextReg(mem) );
-                tpu.setFlag(FLAG_CARRY, false);
-                tpu.setFlag(FLAG_PARITY, parity<u8>(n));
-                tpu.setFlag(FLAG_ZERO, n == 0);
-                tpu.setFlag(FLAG_SIGN, (n & 0x80) > 0);
-                tpu.setFlag(FLAG_OVERFLOW, false);
-                break;
-            }
-            // reg16
-            case 1: {
-                const u16 n = tpu.readReg16( tpu.nextReg(mem) );
-                tpu.setFlag(FLAG_CARRY, false);
-                tpu.setFlag(FLAG_PARITY, parity<u16>(n));
-                tpu.setFlag(FLAG_ZERO, n == 0);
-                tpu.setFlag(FLAG_SIGN, (n & 0x8000) > 0);
-                tpu.setFlag(FLAG_OVERFLOW, false);
-                break;
-            }
-            // reg32
-            case 2: {
-                const u32 n = tpu.readReg32( tpu.nextReg(mem) );
-                tpu.setFlag(FLAG_CARRY, false);
-                tpu.setFlag(FLAG_PARITY, parity<u32>(n));
-                tpu.setFlag(FLAG_ZERO, n == 0);
-                tpu.setFlag(FLAG_SIGN, (n & 0x8000'0000) > 0);
-                tpu.setFlag(FLAG_OVERFLOW, false);
-                break;
-            }
-            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for BUF.");
-        }
-    }
-
     void executeCMP(TPU& tpu, Memory& mem) {
         const u8 controlByte = tpu.nextByte(mem);
         const u8 MOD = 0b111 & controlByte; // Read MOD bits
