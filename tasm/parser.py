@@ -32,34 +32,38 @@ def parse_args(parts: list[str]) -> tuple:
     """
 
     TODO
-    - Parsing literals
-        - Signed & unsigned
-        - simm8/simm16/simm32?
     - Distinguish rel32 from imm32
-    - Parsing addresses
     - Offset notation
         - Would fix the rel32 addresses
         - [IP + offset], [EAX - offset]
         - ONLY for 32-bit registers
-    - @addr
 
     """
 
     for part in parts:
         if reg := re.match(r"^0x[0-9a-fA-F]+$", part): # Hex literals
             args.append({ "type": "Immediate", "value": int(reg.group()[2:], 16) })
-        elif reg := re.match(r"^0b[01]+$", part): # Binary literals
-            args.append({ "type": "Immediate", "value": int(reg.group()[2:], 2) })
         elif reg := re.match(r"^\d+$", part): # Decimal literals
             args.append({ "type": "Immediate", "value": int(reg.group()) })
+
+        elif reg := re.match(r"^[\-\+]0x[0-9a-fA-F]+$", part): # SIGNED Hex literals
+            sign = -1 if reg.group()[0] == "-" else 1
+            args.append({ "type": "SignedImmediate", "value": sign * int(reg.group()[3:], 16) })
+        elif reg := re.match(r"^[\-\+]\d+$", part): # SIGNED Decimal literals
+            sign = -1 if reg.group()[0] == "-" else 1
+            args.append({ "type": "SignedImmediate", "value": sign * int(reg.group()[1:]) })
+
         elif reg := re.match(r"^AL|AH|BL|BH|CL|CH|DL|DH$", part): # reg8
             args.append({ "type": "Reg8", "value": regcode(reg.group()) })
         elif reg := re.match(r"^AX|BX|CX|DX|SP|BP|SI|DI$", part): # reg16
             args.append({ "type": "Reg16", "value": regcode(reg.group()) })
         elif reg := re.match(r"^EAX|EBX|ECX|EDX|ESP|EBP|ESI|EDI|RP$", part): # reg32
             args.append({ "type": "Reg32", "value": regcode(reg.group()) })
-        elif reg := re.match(r"^[_a-zA-Z0-9]+$", part): # labels
-            args.append({ "type": "Label", "value": regcode(reg.group()) })
+
+        elif reg := re.match(r"^[_a-zA-Z0-9]+$", part): # Labels
+            args.append({ "type": "Label", "value": reg.group() })
+        elif reg := re.match(r"^@0x[0-9a-fA-F]+$", part): # Hex Addresses
+            args.append({ "type": "Address", "value": int(reg.group()[3:], 16) })
 
     # Tuple-ize for fun
     return tuple( args )

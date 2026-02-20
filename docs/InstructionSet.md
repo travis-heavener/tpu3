@@ -8,14 +8,16 @@ This file shows the complete instruction set for the 32-bit TPU3 architecture.
 
 - reg8/reg16/reg32: 8/16/32-bit register
     - Ex: AX, ESP, SI
-- imm8/imm16/imm32: 8/16/32-bit immediate value
-    - Ex: 1024, 0xBEEF, 0b0101
+- imm8/imm16/imm32: 8/16/32-bit unsigned immediate value
+    - Ex: 1024, 0xBEEF
+- simm8/simm16/simm32: 8/16/32-bit signed immediate value (MUST have a sign, +/-)
+    - Ex: -1024, +0xBEEF
 - label: a symbolic location resolved by the assembler to a rel32
     - Ex: _start, my_label8
 - rel32: a 32-bit signed offset added to the IP AFTER the current instruction
-    - Ex: +1024, -0xBEEF, +0b0101
-- addr: an absolute 32-bit memory address
-    - Ex: @1024, @0xBEEF, @0b0101
+    - Ex: +1024, -0xBEEF
+- addr: an absolute 32-bit HEXADECIMAL memory address
+    - Ex: @0xDEADBEEF, @0x1234ABCD
 
 ## Instruction Memory Diagram
 
@@ -114,74 +116,74 @@ Total: 1 byte (8 bits) + arguments if NO modifier fields are present, 2 bytes (1
 
 ## Bitwise & Arithmetic Instructions
 
-| Inst. | Op. A | Op. B | OpCode | MOD | Signed? | Description                                                        | Flags? |
-|-------|-------|-------|--------|-----|---------|--------------------------------------------------------------------|--------|
-| cmp   |  reg8 |  imm8 |   0x21 |   0 |  No (0) | Same as sub, but doesn't store the result.                         | --     |
-| --    | reg16 | imm16 |   0x21 |   1 |  No (0) | Same as sub, but doesn't store the result.                         | --     |
-| --    | reg32 | imm32 |   0x21 |   2 |  No (0) | Same as sub, but doesn't store the result.                         | --     |
-| --    |  reg8 |  reg8 |   0x21 |   3 |  No (0) | Same as sub, but doesn't store the result.                         | --     |
-| --    | reg16 | reg16 |   0x21 |   4 |  No (0) | Same as sub, but doesn't store the result.                         | --     |
-| --    | reg32 | reg32 |   0x21 |   5 |  No (0) | Same as sub, but doesn't store the result.                         | --     |
-| scmp  |  reg8 |  imm8 |   0x21 |   0 | Yes (1) | Same as ssub, but doesn't store the result.                        | --     |
-| --    | reg16 | imm16 |   0x21 |   1 | Yes (1) | Same as ssub, but doesn't store the result.                        | --     |
-| --    | reg32 | imm32 |   0x21 |   2 | Yes (1) | Same as ssub, but doesn't store the result.                        | --     |
-| --    |  reg8 |  reg8 |   0x21 |   3 | Yes (1) | Same as ssub, but doesn't store the result.                        | --     |
-| --    | reg16 | reg16 |   0x21 |   4 | Yes (1) | Same as ssub, but doesn't store the result.                        | --     |
-| --    | reg32 | reg32 |   0x21 |   5 | Yes (1) | Same as ssub, but doesn't store the result.                        | --     |
-| and   |  reg8 |  imm8 |   0x22 |   0 |      -- | Bitwise AND on a reg8 and imm8, stored in first reg8.              | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| --    | reg16 | imm16 |   0x22 |   1 |      -- | Bitwise AND on a reg16 and imm16, stored in first reg16.           | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| --    | reg32 | imm32 |   0x22 |   2 |      -- | Bitwise AND on a reg32 and imm32, stored in first reg32.           | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| --    |  reg8 |  reg8 |   0x22 |   3 |      -- | Bitwise AND on two reg8, stored in first reg8.                     | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| --    | reg16 | reg16 |   0x22 |   4 |      -- | Bitwise AND on two reg16, stored in first reg16.                   | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| --    | reg32 | reg32 |   0x22 |   5 |      -- | Bitwise AND on two reg32, stored in first reg32.                   | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| or    |  reg8 |  imm8 |   0x23 |   0 |      -- | Bitwise OR on a reg8 and imm8, stored in first reg8.               | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| --    | reg16 | imm16 |   0x23 |   1 |      -- | Bitwise OR on a reg16 and imm16, stored in first reg16.            | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| --    | reg32 | imm32 |   0x23 |   2 |      -- | Bitwise OR on a reg32 and imm32, stored in first reg32.            | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| --    |  reg8 |  reg8 |   0x23 |   3 |      -- | Bitwise OR on two reg8, stored in first reg8.                      | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| --    | reg16 | reg16 |   0x23 |   4 |      -- | Bitwise OR on two reg16, stored in first reg16.                    | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| --    | reg32 | reg32 |   0x23 |   5 |      -- | Bitwise OR on two reg32, stored in first reg32.                    | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| xor   |  reg8 |  imm8 |   0x24 |   0 |      -- | Bitwise XOR on a reg8 and imm8, stored in first reg8.              | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| --    | reg16 | imm16 |   0x24 |   1 |      -- | Bitwise XOR on a reg16 and imm16, stored in first reg16.           | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| --    | reg32 | imm32 |   0x24 |   2 |      -- | Bitwise XOR on a reg32 and imm32, stored in first reg32.           | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| --    |  reg8 |  reg8 |   0x24 |   3 |      -- | Bitwise XOR on two reg8, stored in first reg8.                     | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| --    | reg16 | reg16 |   0x24 |   4 |      -- | Bitwise XOR on two reg16, stored in first reg16.                   | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| --    | reg32 | reg32 |   0x24 |   5 |      -- | Bitwise XOR on two reg32, stored in first reg32.                   | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
-| not   |  reg8 |    -- |   0x25 |   0 |      -- | Bitwise NOT on a reg8, stored in place.                            | --     |
-| --    | reg16 |    -- |   0x25 |   1 |      -- | Bitwise NOT on a reg16, stored in place.                           | --     |
-| --    | reg32 |    -- |   0x25 |   2 |      -- | Bitwise NOT on a reg32, stored in place.                           | --     |
-| add   |  reg8 |  imm8 |   0x2A |   0 |  No (0) | Adds a reg8 and imm8, stored in first reg8.                        | Flags affected: CF, PF, ZF, SF. |
-| --    | reg16 | imm16 |   0x2A |   1 |  No (0) | Adds a reg16 and imm16, stored in first reg16.                     | Flags affected: CF, PF, ZF, SF. |
-| --    | reg32 | imm32 |   0x2A |   2 |  No (0) | Adds a reg32 and imm32, stored in first reg32.                     | Flags affected: CF, PF, ZF, SF. |
-| --    |  reg8 |  reg8 |   0x2A |   3 |  No (0) | Adds two reg8, stored in first reg8.                               | Flags affected: CF, PF, ZF, SF. |
-| --    | reg16 | reg16 |   0x2A |   4 |  No (0) | Adds two reg16, stored in first reg16.                             | Flags affected: CF, PF, ZF, SF. |
-| --    | reg32 | reg32 |   0x2A |   5 |  No (0) | Adds two reg32, stored in first reg32.                             | Flags affected: CF, PF, ZF, SF. |
-| sadd  |  reg8 |  imm8 |   0x2A |   0 | Yes (1) | Adds a reg8 and imm8, stored in first reg8.                        | Flags affected: OF, PF, ZF, SF. |
-| --    | reg16 | imm16 |   0x2A |   1 | Yes (1) | Adds a reg16 and imm16, stored in first reg16.                     | Flags affected: OF, PF, ZF, SF. |
-| --    | reg32 | imm32 |   0x2A |   2 | Yes (1) | Adds a reg32 and imm32, stored in first reg32.                     | Flags affected: OF, PF, ZF, SF. |
-| --    |  reg8 |  reg8 |   0x2A |   3 | Yes (1) | Adds two reg8, stored in first reg8.                               | Flags affected: OF, PF, ZF, SF. |
-| --    | reg16 | reg16 |   0x2A |   4 | Yes (1) | Adds two reg16, stored in first reg16.                             | Flags affected: OF, PF, ZF, SF. |
-| --    | reg32 | reg32 |   0x2A |   5 | Yes (1) | Adds two reg32, stored in first reg32.                             | Flags affected: OF, PF, ZF, SF. |
-| sub   |  reg8 |  imm8 |   0x2B |   0 |  No (0) | Subtracts an imm8 from a reg8, stored in first reg8.               | Flags affected: CF, PF, ZF, SF. |
-| --    | reg16 | imm16 |   0x2B |   1 |  No (0) | Subtracts an imm16 from a reg16, stored in first reg16.            | Flags affected: CF, PF, ZF, SF. |
-| --    | reg32 | imm32 |   0x2B |   2 |  No (0) | Subtracts an imm32 from a reg32, stored in first reg32.            | Flags affected: CF, PF, ZF, SF. |
-| --    |  reg8 |  reg8 |   0x2B |   3 |  No (0) | Subtracts the second reg8 from the first, stored in first reg8.    | Flags affected: CF, PF, ZF, SF. |
-| --    | reg16 | reg16 |   0x2B |   4 |  No (0) | Subtracts the second reg16 from the first, stored in first reg16.  | Flags affected: CF, PF, ZF, SF. |
-| --    | reg32 | reg32 |   0x2B |   5 |  No (0) | Subtracts the second reg32 from the first, stored in first reg32.  | Flags affected: CF, PF, ZF, SF. |
-| ssub  |  reg8 |  imm8 |   0x2B |   0 | Yes (1) | Subtracts an imm8 from a reg8, stored in first reg8.               | Flags affected: OF, PF, ZF, SF. |
-| --    | reg16 | imm16 |   0x2B |   1 | Yes (1) | Subtracts an imm16 from a reg16, stored in first reg16.            | Flags affected: OF, PF, ZF, SF. |
-| --    | reg32 | imm32 |   0x2B |   2 | Yes (1) | Subtracts an imm32 from a reg32, stored in first reg32.            | Flags affected: OF, PF, ZF, SF. |
-| --    |  reg8 |  reg8 |   0x2B |   3 | Yes (1) | Subtracts the second reg8 from the first, stored in first reg8.    | Flags affected: OF, PF, ZF, SF. |
-| --    | reg16 | reg16 |   0x2B |   4 | Yes (1) | Subtracts the second reg16 from the first, stored in first reg16.  | Flags affected: OF, PF, ZF, SF. |
-| --    | reg32 | reg32 |   0x2B |   5 | Yes (1) | Subtracts the second reg32 from the first, stored in first reg32.  | Flags affected: OF, PF, ZF, SF. |
-| mul   |  imm8 |    -- |   0x2C |   0 |  No (0) | Multiplies AL by an imm8, storing the result in AX.                                    | Flags affected: OF, CF (both equal). |
-| --    | imm16 |    -- |   0x2C |   1 |  No (0) | Multiplies AX by an imm16, storing the result in EAX.                                  | Flags affected: OF, CF (both equal). |
-| --    | imm32 |    -- |   0x2C |   2 |  No (0) | Multiplies EAX by an imm32, storing the lower half in EAX and the upper half in EDX.   | Flags affected: OF, CF (both equal). |
-| --    |  reg8 |    -- |   0x2C |   3 |  No (0) | Multiplies AL by a reg8, storing the result in AX.                                     | Flags affected: OF, CF (both equal). |
-| --    | reg16 |    -- |   0x2C |   4 |  No (0) | Multiplies AX by a reg6, storing the result in EAX.                                    | Flags affected: OF, CF (both equal). |
-| --    | reg32 |    -- |   0x2C |   5 |  No (0) | Multiplies EAX by a reg32, storing the lower half in EAX and the upper half in EDX.    | Flags affected: OF, CF (both equal). |
-| smul  |  imm8 |    -- |   0x2C |   0 | Yes (1) | Multiplies AL by an imm8, storing the result in AX.                                    | Flags affected: OF, CF (both equal). |
-| --    | imm16 |    -- |   0x2C |   1 | Yes (1) | Multiplies AX by an imm16, storing the result in EAX.                                  | Flags affected: OF, CF (both equal). |
-| --    | imm32 |    -- |   0x2C |   2 | Yes (1) | Multiplies EAX by an imm32, storing the lower half in EAX and the upper half in EDX.   | Flags affected: OF, CF (both equal). |
-| --    |  reg8 |    -- |   0x2C |   3 | Yes (1) | Multiplies AL by a reg8, storing the result in AX.                                     | Flags affected: OF, CF (both equal). |
-| --    | reg16 |    -- |   0x2C |   4 | Yes (1) | Multiplies AX by a reg6, storing the result in EAX.                                    | Flags affected: OF, CF (both equal). |
-| --    | reg32 |    -- |   0x2C |   5 | Yes (1) | Multiplies EAX by a reg32, storing the lower half in EAX and the upper half in EDX.    | Flags affected: OF, CF (both equal). |
+| Inst. | Op. A  | Op. B  | OpCode | MOD | Signed? | Description                                                        | Flags? |
+|-------|--------|--------|--------|-----|---------|--------------------------------------------------------------------|--------|
+| cmp   |   reg8 |   imm8 |   0x21 |   0 |  No (0) | Same as sub, but doesn't store the result.                         | --     |
+| --    |  reg16 |  imm16 |   0x21 |   1 |  No (0) | Same as sub, but doesn't store the result.                         | --     |
+| --    |  reg32 |  imm32 |   0x21 |   2 |  No (0) | Same as sub, but doesn't store the result.                         | --     |
+| --    |   reg8 |   reg8 |   0x21 |   3 |  No (0) | Same as sub, but doesn't store the result.                         | --     |
+| --    |  reg16 |  reg16 |   0x21 |   4 |  No (0) | Same as sub, but doesn't store the result.                         | --     |
+| --    |  reg32 |  reg32 |   0x21 |   5 |  No (0) | Same as sub, but doesn't store the result.                         | --     |
+| scmp  |   reg8 |  simm8 |   0x21 |   0 | Yes (1) | Same as ssub, but doesn't store the result.                        | --     |
+| --    |  reg16 | simm16 |   0x21 |   1 | Yes (1) | Same as ssub, but doesn't store the result.                        | --     |
+| --    |  reg32 | simm32 |   0x21 |   2 | Yes (1) | Same as ssub, but doesn't store the result.                        | --     |
+| --    |   reg8 |   reg8 |   0x21 |   3 | Yes (1) | Same as ssub, but doesn't store the result.                        | --     |
+| --    |  reg16 |  reg16 |   0x21 |   4 | Yes (1) | Same as ssub, but doesn't store the result.                        | --     |
+| --    |  reg32 |  reg32 |   0x21 |   5 | Yes (1) | Same as ssub, but doesn't store the result.                        | --     |
+| and   |   reg8 |   imm8 |   0x22 |   0 |      -- | Bitwise AND on a reg8 and imm8, stored in first reg8.              | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| --    |  reg16 |  imm16 |   0x22 |   1 |      -- | Bitwise AND on a reg16 and imm16, stored in first reg16.           | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| --    |  reg32 |  imm32 |   0x22 |   2 |      -- | Bitwise AND on a reg32 and imm32, stored in first reg32.           | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| --    |   reg8 |   reg8 |   0x22 |   3 |      -- | Bitwise AND on two reg8, stored in first reg8.                     | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| --    |  reg16 |  reg16 |   0x22 |   4 |      -- | Bitwise AND on two reg16, stored in first reg16.                   | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| --    |  reg32 |  reg32 |   0x22 |   5 |      -- | Bitwise AND on two reg32, stored in first reg32.                   | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| or    |   reg8 |   imm8 |   0x23 |   0 |      -- | Bitwise OR on a reg8 and imm8, stored in first reg8.               | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| --    |  reg16 |  imm16 |   0x23 |   1 |      -- | Bitwise OR on a reg16 and imm16, stored in first reg16.            | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| --    |  reg32 |  imm32 |   0x23 |   2 |      -- | Bitwise OR on a reg32 and imm32, stored in first reg32.            | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| --    |   reg8 |   reg8 |   0x23 |   3 |      -- | Bitwise OR on two reg8, stored in first reg8.                      | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| --    |  reg16 |  reg16 |   0x23 |   4 |      -- | Bitwise OR on two reg16, stored in first reg16.                    | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| --    |  reg32 |  reg32 |   0x23 |   5 |      -- | Bitwise OR on two reg32, stored in first reg32.                    | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| xor   |   reg8 |   imm8 |   0x24 |   0 |      -- | Bitwise XOR on a reg8 and imm8, stored in first reg8.              | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| --    |  reg16 |  imm16 |   0x24 |   1 |      -- | Bitwise XOR on a reg16 and imm16, stored in first reg16.           | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| --    |  reg32 |  imm32 |   0x24 |   2 |      -- | Bitwise XOR on a reg32 and imm32, stored in first reg32.           | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| --    |   reg8 |   reg8 |   0x24 |   3 |      -- | Bitwise XOR on two reg8, stored in first reg8.                     | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| --    |  reg16 |  reg16 |   0x24 |   4 |      -- | Bitwise XOR on two reg16, stored in first reg16.                   | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| --    |  reg32 |  reg32 |   0x24 |   5 |      -- | Bitwise XOR on two reg32, stored in first reg32.                   | Flags cleared: OF, CF; flags affected: PF, ZF, SF. |
+| not   |   reg8 |     -- |   0x25 |   0 |      -- | Bitwise NOT on a reg8, stored in place.                            | --     |
+| --    |  reg16 |     -- |   0x25 |   1 |      -- | Bitwise NOT on a reg16, stored in place.                           | --     |
+| --    |  reg32 |     -- |   0x25 |   2 |      -- | Bitwise NOT on a reg32, stored in place.                           | --     |
+| add   |   reg8 |   imm8 |   0x2A |   0 |  No (0) | Adds a reg8 and imm8, stored in first reg8.                        | Flags affected: CF, PF, ZF, SF. |
+| --    |  reg16 |  imm16 |   0x2A |   1 |  No (0) | Adds a reg16 and imm16, stored in first reg16.                     | Flags affected: CF, PF, ZF, SF. |
+| --    |  reg32 |  imm32 |   0x2A |   2 |  No (0) | Adds a reg32 and imm32, stored in first reg32.                     | Flags affected: CF, PF, ZF, SF. |
+| --    |   reg8 |   reg8 |   0x2A |   3 |  No (0) | Adds two reg8, stored in first reg8.                               | Flags affected: CF, PF, ZF, SF. |
+| --    |  reg16 |  reg16 |   0x2A |   4 |  No (0) | Adds two reg16, stored in first reg16.                             | Flags affected: CF, PF, ZF, SF. |
+| --    |  reg32 |  reg32 |   0x2A |   5 |  No (0) | Adds two reg32, stored in first reg32.                             | Flags affected: CF, PF, ZF, SF. |
+| sadd  |   reg8 |  simm8 |   0x2A |   0 | Yes (1) | Adds a reg8 and simm8, stored in first reg8.                       | Flags affected: OF, PF, ZF, SF. |
+| --    |  reg16 | simm16 |   0x2A |   1 | Yes (1) | Adds a reg16 and simm16, stored in first reg16.                    | Flags affected: OF, PF, ZF, SF. |
+| --    |  reg32 | simm32 |   0x2A |   2 | Yes (1) | Adds a reg32 and simm32, stored in first reg32.                    | Flags affected: OF, PF, ZF, SF. |
+| --    |   reg8 |   reg8 |   0x2A |   3 | Yes (1) | Adds two reg8, stored in first reg8.                               | Flags affected: OF, PF, ZF, SF. |
+| --    |  reg16 |  reg16 |   0x2A |   4 | Yes (1) | Adds two reg16, stored in first reg16.                             | Flags affected: OF, PF, ZF, SF. |
+| --    |  reg32 |  reg32 |   0x2A |   5 | Yes (1) | Adds two reg32, stored in first reg32.                             | Flags affected: OF, PF, ZF, SF. |
+| sub   |   reg8 |   imm8 |   0x2B |   0 |  No (0) | Subtracts an imm8 from a reg8, stored in first reg8.               | Flags affected: CF, PF, ZF, SF. |
+| --    |  reg16 |  imm16 |   0x2B |   1 |  No (0) | Subtracts an imm16 from a reg16, stored in first reg16.            | Flags affected: CF, PF, ZF, SF. |
+| --    |  reg32 |  imm32 |   0x2B |   2 |  No (0) | Subtracts an imm32 from a reg32, stored in first reg32.            | Flags affected: CF, PF, ZF, SF. |
+| --    |   reg8 |   reg8 |   0x2B |   3 |  No (0) | Subtracts the second reg8 from the first, stored in first reg8.    | Flags affected: CF, PF, ZF, SF. |
+| --    |  reg16 |  reg16 |   0x2B |   4 |  No (0) | Subtracts the second reg16 from the first, stored in first reg16.  | Flags affected: CF, PF, ZF, SF. |
+| --    |  reg32 |  reg32 |   0x2B |   5 |  No (0) | Subtracts the second reg32 from the first, stored in first reg32.  | Flags affected: CF, PF, ZF, SF. |
+| ssub  |   reg8 |  simm8 |   0x2B |   0 | Yes (1) | Subtracts a simm8 from a reg8, stored in first reg8.               | Flags affected: OF, PF, ZF, SF. |
+| --    |  reg16 | simm16 |   0x2B |   1 | Yes (1) | Subtracts a simm16 from a reg16, stored in first reg16.            | Flags affected: OF, PF, ZF, SF. |
+| --    |  reg32 | simm32 |   0x2B |   2 | Yes (1) | Subtracts a simm32 from a reg32, stored in first reg32.            | Flags affected: OF, PF, ZF, SF. |
+| --    |   reg8 |   reg8 |   0x2B |   3 | Yes (1) | Subtracts the second reg8 from the first, stored in first reg8.    | Flags affected: OF, PF, ZF, SF. |
+| --    |  reg16 |  reg16 |   0x2B |   4 | Yes (1) | Subtracts the second reg16 from the first, stored in first reg16.  | Flags affected: OF, PF, ZF, SF. |
+| --    |  reg32 |  reg32 |   0x2B |   5 | Yes (1) | Subtracts the second reg32 from the first, stored in first reg32.  | Flags affected: OF, PF, ZF, SF. |
+| mul   |   imm8 |     -- |   0x2C |   0 |  No (0) | Multiplies AL by an imm8, storing the result in AX.                                    | Flags affected: OF, CF (both equal). |
+| --    |  imm16 |     -- |   0x2C |   1 |  No (0) | Multiplies AX by an imm16, storing the result in EAX.                                  | Flags affected: OF, CF (both equal). |
+| --    |  imm32 |     -- |   0x2C |   2 |  No (0) | Multiplies EAX by an imm32, storing the lower half in EAX and the upper half in EDX.   | Flags affected: OF, CF (both equal). |
+| --    |   reg8 |     -- |   0x2C |   3 |  No (0) | Multiplies AL by a reg8, storing the result in AX.                                     | Flags affected: OF, CF (both equal). |
+| --    |  reg16 |     -- |   0x2C |   4 |  No (0) | Multiplies AX by a reg6, storing the result in EAX.                                    | Flags affected: OF, CF (both equal). |
+| --    |  reg32 |     -- |   0x2C |   5 |  No (0) | Multiplies EAX by a reg32, storing the lower half in EAX and the upper half in EDX.    | Flags affected: OF, CF (both equal). |
+| smul  |  simm8 |     -- |   0x2C |   0 | Yes (1) | Multiplies AL by a simm8, storing the result in AX.                                    | Flags affected: OF, CF (both equal). |
+| --    | simm16 |     -- |   0x2C |   1 | Yes (1) | Multiplies AX by a simm16, storing the result in EAX.                                  | Flags affected: OF, CF (both equal). |
+| --    | simm32 |     -- |   0x2C |   2 | Yes (1) | Multiplies EAX by a simm32, storing the lower half in EAX and the upper half in EDX.   | Flags affected: OF, CF (both equal). |
+| --    |   reg8 |     -- |   0x2C |   3 | Yes (1) | Multiplies AL by a reg8, storing the result in AX.                                     | Flags affected: OF, CF (both equal). |
+| --    |  reg16 |     -- |   0x2C |   4 | Yes (1) | Multiplies AX by a reg6, storing the result in EAX.                                    | Flags affected: OF, CF (both equal). |
+| --    |  reg32 |     -- |   0x2C |   5 | Yes (1) | Multiplies EAX by a reg32, storing the lower half in EAX and the upper half in EDX.    | Flags affected: OF, CF (both equal). |
