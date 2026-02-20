@@ -46,8 +46,8 @@ Total: 1 byte (8 bits) + arguments if NO modifier fields are present, 2 bytes (1
 |---------|-------|-------|--------|-----|------------|-------------------------------------------------------------------------------------|
 | nop     |    -- |    -- |   0x00 |  -- |         -- | No operation.                                                                       |
 | hlt     |    -- |    -- |   0x01 |  -- |         -- | Stops CPU clock.                                                                    |
-| syscall |  imm8 |    -- |   0x02 |  -- |         -- | Triggers a syscall, entering kernel mode storing the return address in SRP.         |
-| sysret  |       |    -- |   0x03 |  -- |         -- | Returns from a syscall, returning to user mode to the return address in SRP.        |
+| syscall |    -- |    -- |   0x02 |  -- |         -- | Triggers a syscall based on the value in EAX, storing the return address in SRP.    |
+| sysret  |       |    -- |   0x03 |  -- |         -- | Returns from a syscall to user mode via the return address in SRP.                  |
 | call    | rel32 |    -- |   0x04 |   0 |   Rel. (0) | Offsets the IP by the rel32, storing the current IP in RP.                          |
 | call    |  addr |    -- |   0x04 |   0 |   Abs. (1) | Moves the IP to a new memory address, storing the current IP in RP.                 |
 | call    | reg32 |    -- |   0x04 |   1 |         -- | Moves the IP to a memory address from a reg32, storing the current IP in RP.        |

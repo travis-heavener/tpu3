@@ -9,7 +9,7 @@ namespace tpu {
         if (tpu.getMode() != TPUMode::USER)
             throw tpu::InsufficientModeException("Attempted to call syscall from kernel mode.");
 
-        const u32 syscallNumber = static_cast<u32>( tpu.nextByte(mem) );
+        const u32 syscallNumber = tpu.readReg32(RegCode::EAX);
 
         // Verify syscall number is valid
         if (syscallNumber >= SYSCALL_TABLE_SIZE / 4)
