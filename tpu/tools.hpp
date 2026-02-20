@@ -42,7 +42,7 @@ namespace tpu {
     typedef int16_t s16;
     typedef int8_t  s8;
 
-    // Register codes for instructions
+    // Register codes for instructions (excluding hidden registers)
     enum class RegCode : u8 {
         EAX = 0x00, AX  = 0x01, AH = 0x02, AL = 0x03,
         EBX = 0x04, BX  = 0x05, BH = 0x06, BL = 0x07,
@@ -54,7 +54,7 @@ namespace tpu {
         EBP = 0x13, BP = 0x14,
         ESI = 0x15, SI = 0x16,
         EDI = 0x17, DI = 0x18,
-        RP = 0x19, SRP = 0x1A
+        RP = 0x19
     };
 
     // String to uints
