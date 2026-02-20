@@ -38,15 +38,25 @@ namespace tpu {
             // Switch based on instruction
             #define EXECUTE_INSTRUCTION(name) case inst::name: execute##name(*this, mem); break
             switch (instruction) {
+                // Control Instructions
                 case inst::HLT: return;
                 EXECUTE_INSTRUCTION( CALL );
                 EXECUTE_INSTRUCTION( RET  );
                 EXECUTE_INSTRUCTION( JMP  );
+                EXECUTE_INSTRUCTION( JZ   );
+                EXECUTE_INSTRUCTION( JC   );
+                EXECUTE_INSTRUCTION( JO   );
+                EXECUTE_INSTRUCTION( JS   );
+                EXECUTE_INSTRUCTION( JP   );
+
+                // Register & Memory Instructions
                 EXECUTE_INSTRUCTION( MOV  );
                 EXECUTE_INSTRUCTION( LB   );
                 EXECUTE_INSTRUCTION( SB   );
                 EXECUTE_INSTRUCTION( PUSH );
                 EXECUTE_INSTRUCTION( POP  );
+
+                // Bitwise & Arithmetic Instructions
                 EXECUTE_INSTRUCTION( CMP  );
                 EXECUTE_INSTRUCTION( AND  );
                 EXECUTE_INSTRUCTION( OR   );

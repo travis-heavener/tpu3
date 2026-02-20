@@ -5,7 +5,19 @@ namespace tpu {
     // Instruction handler methods
 
     void executeCALL(TPU& tpu, Memory& mem) {
-        tpu.setIP( tpu.nextDWord(mem).dword );
+        // Backup IP
+        const u32 IP = tpu.getIP();
+        tpu.setReg32(RegCode::RP, IP);
+
+        // Call
+        const u8 controlByte = tpu.nextByte(mem);
+        const u8 MOD = 0b111 & controlByte;
+        const bool isAbsAddrMode = ((0b10000 & controlByte) >> 4) == ADDR_MODE_ABS;
+        switch (MOD) {
+            case 0: tpu.setIP( isAbsAddrMode ? tpu.nextDWord(mem).dword : (IP + static_cast<s32>(tpu.nextDWord(mem).dword)) ); break;
+            case 1: tpu.setIP( tpu.readReg32(tpu.nextReg(mem)) ); break;
+            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for CALL.");
+        }
     }
 
     void executeRET(TPU& tpu, Memory&) {
@@ -13,19 +25,38 @@ namespace tpu {
     }
 
     void executeJMP(TPU& tpu, Memory& mem) {
-        const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
-        const u32 addr = tpu.nextDWord(mem).dword;
+        const u8 controlByte = tpu.nextByte(mem);
+        const u8 MOD = 0b111 & controlByte;
+        const bool isAbsAddrMode = ((0b10000 & controlByte) >> 4) == ADDR_MODE_ABS;
+        const u32 IP = tpu.getIP();
         switch (MOD) {
-            /* jmp */ case 0: tpu.setIP(addr); break;
-            /* jz */  case 1: if (tpu.isFlag(FLAG_ZERO)) tpu.setIP(addr); break;
-            /* jnz */ case 2: if (!tpu.isFlag(FLAG_ZERO)) tpu.setIP(addr); break;
-            /* jc */  case 3: if (tpu.isFlag(FLAG_CARRY)) tpu.setIP(addr); break;
-            /* jnc */ case 4: if (!tpu.isFlag(FLAG_CARRY)) tpu.setIP(addr); break;
-            /* jo */  case 5: if (tpu.isFlag(FLAG_OVERFLOW)) tpu.setIP(addr); break;
-            /* jno */ case 6: if (!tpu.isFlag(FLAG_OVERFLOW)) tpu.setIP(addr); break;
-            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for JMP-like.");
+            case 0: tpu.setIP( isAbsAddrMode ? tpu.nextDWord(mem).dword : (IP + static_cast<s32>(tpu.nextDWord(mem).dword)) ); break;
+            case 1: tpu.setIP( tpu.readReg32(tpu.nextReg(mem)) ); break;
+            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for JMP.");
         }
     }
+
+    #define executeJMPLike(name, flag) \
+        void execute##name(TPU& tpu, Memory& mem) { \
+            const u8 controlByte = tpu.nextByte(mem); \
+            const bool isAbsAddrMode = ((0b10000 & controlByte) >> 4) == ADDR_MODE_ABS; \
+            const u32 IP = tpu.getIP(); \
+            switch (0b111 & controlByte) { \
+                case 0: if (tpu.isFlag(flag))  tpu.setIP( isAbsAddrMode ? tpu.nextDWord(mem).dword : (IP + static_cast<s32>(tpu.nextDWord(mem).dword)) ); break; \
+                case 1: if (tpu.isFlag(flag))  tpu.setIP( tpu.readReg32(tpu.nextReg(mem)) ); break; \
+                case 2: if (!tpu.isFlag(flag)) tpu.setIP( isAbsAddrMode ? tpu.nextDWord(mem).dword : (IP + static_cast<s32>(tpu.nextDWord(mem).dword)) ); break; \
+                case 3: if (!tpu.isFlag(flag)) tpu.setIP( tpu.readReg32(tpu.nextReg(mem)) ); break; \
+                default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(0b111 & controlByte)) + " is invalid for " #name "."); \
+            } \
+        }
+
+    executeJMPLike(JZ, FLAG_ZERO);
+    executeJMPLike(JC, FLAG_CARRY);
+    executeJMPLike(JO, FLAG_OVERFLOW);
+    executeJMPLike(JS, FLAG_SIGN);
+    executeJMPLike(JP, FLAG_PARITY);
+
+    #undef executeJMPLike
 
     void executeMOV(TPU& tpu, Memory& mem) {
         const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte

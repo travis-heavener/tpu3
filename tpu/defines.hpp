@@ -12,6 +12,10 @@
 #define FLAG_SIGN       7
 #define FLAG_OVERFLOW   11
 
+// Addressing modes
+#define ADDR_MODE_REL   0
+#define ADDR_MODE_ABS   1
+
 /**************************************/
 /********* TPU specifications *********/
 /**************************************/

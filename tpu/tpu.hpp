@@ -64,6 +64,7 @@ namespace tpu {
             void setReg32(const RegCode, const u32);
 
             // Separate method to bypass IP write checks in setReg32
+            u32 getIP() const { return IP.dword; };
             void setIP(const u32 n) { IP.dword = n; };
 
             // Push/pop shorthands
