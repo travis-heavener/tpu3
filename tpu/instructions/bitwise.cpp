@@ -1,6 +1,7 @@
 #include "instructions.hpp"
 
 #include "arithmetic.hpp"
+#include "../defines.hpp"
 #include "../tools.hpp"
 
 namespace tpu {
@@ -8,8 +9,8 @@ namespace tpu {
     // Instruction handler methods
     void executeCMP(TPU& tpu, Memory& mem) {
         const u8 controlByte = tpu.nextByte(mem);
-        const u8 MOD = 0b111 & controlByte; // Read MOD bits
-        const bool isSigned = 0b1000 & controlByte;
+        const u8 MOD = IMOD(controlByte);
+        const bool isSigned = ISIGN(controlByte) > 0;
         const RegCode regA = tpu.nextReg(mem);
         switch (MOD) {
             case 0:   // reg8, imm8
@@ -42,7 +43,7 @@ namespace tpu {
     // but does NOT set CARRY or OVERFLOW flags
     #define BITWISE_EXECUTE_OP(name, op) \
         void execute##name(TPU& tpu, Memory& mem) { \
-            const u8 MOD = 0b111 & tpu.nextByte(mem); /* Read MOD byte */ \
+            const u8 MOD = IMOD(tpu.nextByte(mem)); \
             const RegCode regA = tpu.nextReg(mem); \
             switch (MOD) { \
                 /* reg8, imm8 */ \
@@ -122,7 +123,7 @@ namespace tpu {
     #undef BITWISE_EXECUTE_OP
 
     void executeNOT(TPU& tpu, Memory& mem) {
-        const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
+        const u8 MOD = IMOD(tpu.nextByte(mem));
         const RegCode regA = tpu.nextReg(mem);
         switch (MOD) {
             /* reg8 */  case 0: tpu.setReg8( regA, static_cast<u8>(~tpu.readReg8(regA)) ); break;

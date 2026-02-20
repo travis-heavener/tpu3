@@ -16,6 +16,17 @@
 #define ADDR_MODE_REL   0
 #define ADDR_MODE_ABS   1
 
+// Instruction helpers
+
+// Extract modifier bits from control byte (byte after instruction)
+#define IMOD(controlByte) (0b111 & controlByte)
+
+// Extract sign bit from control byte (byte after instruction)
+#define ISIGN(controlByte) ((0b1000 & controlByte) >> 3)
+
+// Extract address mode bit from control byte (byte after instruction)
+#define IADDRMODE(controlByte) ((0b10000 & controlByte) >> 4)
+
 /**************************************/
 /********* TPU specifications *********/
 /**************************************/

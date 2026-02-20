@@ -1,5 +1,7 @@
 #include "instructions.hpp"
 
+#include "../defines.hpp"
+
 namespace tpu {
 
     // Instruction handler methods
@@ -11,8 +13,8 @@ namespace tpu {
 
         // Call
         const u8 controlByte = tpu.nextByte(mem);
-        const u8 MOD = 0b111 & controlByte;
-        const bool isAbsAddrMode = ((0b10000 & controlByte) >> 4) == ADDR_MODE_ABS;
+        const u8 MOD = IMOD(controlByte);
+        const bool isAbsAddrMode = IADDRMODE(controlByte) == ADDR_MODE_ABS;
         switch (MOD) {
             case 0: tpu.setIP( isAbsAddrMode ? tpu.nextDWord(mem).dword : (IP + static_cast<s32>(tpu.nextDWord(mem).dword)) ); break;
             case 1: tpu.setIP( tpu.readReg32(tpu.nextReg(mem)) ); break;
@@ -26,8 +28,8 @@ namespace tpu {
 
     void executeJMP(TPU& tpu, Memory& mem) {
         const u8 controlByte = tpu.nextByte(mem);
-        const u8 MOD = 0b111 & controlByte;
-        const bool isAbsAddrMode = ((0b10000 & controlByte) >> 4) == ADDR_MODE_ABS;
+        const u8 MOD = IMOD(controlByte);
+        const bool isAbsAddrMode = IADDRMODE(controlByte) == ADDR_MODE_ABS;
         const u32 IP = tpu.getIP();
         switch (MOD) {
             case 0: tpu.setIP( isAbsAddrMode ? tpu.nextDWord(mem).dword : (IP + static_cast<s32>(tpu.nextDWord(mem).dword)) ); break;
@@ -39,14 +41,14 @@ namespace tpu {
     #define executeJMPLike(name, flag) \
         void execute##name(TPU& tpu, Memory& mem) { \
             const u8 controlByte = tpu.nextByte(mem); \
-            const bool isAbsAddrMode = ((0b10000 & controlByte) >> 4) == ADDR_MODE_ABS; \
+            const bool isAbsAddrMode = IADDRMODE(controlByte) == ADDR_MODE_ABS; \
             const u32 IP = tpu.getIP(); \
-            switch (0b111 & controlByte) { \
+            switch (IMOD(controlByte)) { \
                 case 0: if (tpu.isFlag(flag))  tpu.setIP( isAbsAddrMode ? tpu.nextDWord(mem).dword : (IP + static_cast<s32>(tpu.nextDWord(mem).dword)) ); break; \
                 case 1: if (tpu.isFlag(flag))  tpu.setIP( tpu.readReg32(tpu.nextReg(mem)) ); break; \
                 case 2: if (!tpu.isFlag(flag)) tpu.setIP( isAbsAddrMode ? tpu.nextDWord(mem).dword : (IP + static_cast<s32>(tpu.nextDWord(mem).dword)) ); break; \
                 case 3: if (!tpu.isFlag(flag)) tpu.setIP( tpu.readReg32(tpu.nextReg(mem)) ); break; \
-                default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(0b111 & controlByte)) + " is invalid for " #name "."); \
+                default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(IMOD(controlByte))) + " is invalid for " #name "."); \
             } \
         }
 
@@ -59,7 +61,7 @@ namespace tpu {
     #undef executeJMPLike
 
     void executeMOV(TPU& tpu, Memory& mem) {
-        const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
+        const u8 MOD = IMOD(tpu.nextByte(mem));
         const RegCode regA = tpu.nextReg(mem);
         switch (MOD) {
             /* reg8, imm8 */   case 0: tpu.setReg8( regA, tpu.nextByte(mem) ); break;
@@ -73,7 +75,7 @@ namespace tpu {
     }
 
     void executeLB(TPU& tpu, Memory& mem) {
-        const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
+        const u8 MOD = IMOD(tpu.nextByte(mem));
         const RegCode regA = tpu.nextReg(mem);
         const u32 addr = tpu.nextDWord(mem).dword;
         switch (MOD) {
@@ -85,7 +87,7 @@ namespace tpu {
     }
 
     void executeSB(TPU& tpu, Memory& mem) {
-        const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
+        const u8 MOD = IMOD(tpu.nextByte(mem));
         const RegCode regA = tpu.nextReg(mem);
         const u32 addr = tpu.nextDWord(mem).dword;
         switch (MOD) {
@@ -97,7 +99,7 @@ namespace tpu {
     }
 
     void executePUSH(TPU& tpu, Memory& mem) {
-        const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
+        const u8 MOD = IMOD(tpu.nextByte(mem));
         switch (MOD) {
             /* reg8 */   case 0: tpu.pushByte( mem, tpu.readReg8( tpu.nextReg(mem) ) ); break;
             /* imm8 */   case 1: tpu.pushByte( mem, tpu.nextByte(mem) ); break;
@@ -110,7 +112,7 @@ namespace tpu {
     }
 
     void executePOP(TPU& tpu, Memory& mem) {
-        const u8 MOD = 0b111 & tpu.nextByte(mem); // Read MOD byte
+        const u8 MOD = IMOD(tpu.nextByte(mem));
         switch (MOD) {
             // reg8
             case 0: {
@@ -142,8 +144,8 @@ namespace tpu {
 
     void executeADD(TPU& tpu, Memory& mem) {
         const u8 controlByte = tpu.nextByte(mem);
-        const u8 MOD = 0b111 & controlByte; // Read MOD bits
-        const bool isSigned = 0b1000 & controlByte;
+        const u8 MOD = IMOD(controlByte);
+        const bool isSigned = ISIGN(controlByte) > 0;
         const RegCode regA = tpu.nextReg(mem);
         switch (MOD) {
             case 0:   // reg8, imm8
@@ -173,8 +175,8 @@ namespace tpu {
     
     void executeSUB(TPU& tpu, Memory& mem) {
         const u8 controlByte = tpu.nextByte(mem);
-        const u8 MOD = 0b111 & controlByte; // Read MOD bits
-        const bool isSigned = 0b1000 & controlByte;
+        const u8 MOD = IMOD(controlByte);
+        const bool isSigned = ISIGN(controlByte) > 0;
         const RegCode regA = tpu.nextReg(mem);
         switch (MOD) {
             case 0:   // reg8, imm8
@@ -204,8 +206,8 @@ namespace tpu {
 
     void executeMUL(TPU& tpu, Memory& mem) {
         const u8 controlByte = tpu.nextByte(mem);
-        const u8 MOD = 0b111 & controlByte; // Read MOD bits
-        const bool isSigned = 0b1000 & controlByte;
+        const u8 MOD = IMOD(controlByte);
+        const bool isSigned = ISIGN(controlByte) > 0;
         switch (MOD) {
             case 0:   // imm8
             case 3: { // reg8
