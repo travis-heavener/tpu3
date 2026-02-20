@@ -37,7 +37,6 @@ def parse_args(parts: list[str]) -> tuple:
         - simm8/simm16/simm32?
     - Distinguish rel32 from imm32
     - Parsing addresses
-    - Labels
     - Offset notation
         - Would fix the rel32 addresses
         - [IP + offset], [EAX - offset]
@@ -59,6 +58,8 @@ def parse_args(parts: list[str]) -> tuple:
             args.append({ "type": "Reg16", "value": regcode(reg.group()) })
         elif reg := re.match(r"^EAX|EBX|ECX|EDX|ESP|EBP|ESI|EDI|RP$", part): # reg32
             args.append({ "type": "Reg32", "value": regcode(reg.group()) })
+        elif reg := re.match(r"^[_a-zA-Z0-9]+$", part): # labels
+            args.append({ "type": "Label", "value": regcode(reg.group()) })
 
     # Tuple-ize for fun
     return tuple( args )
