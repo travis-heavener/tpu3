@@ -7,18 +7,25 @@ namespace tpu {
     // Instruction handler methods
 
     void executeCALL(TPU& tpu, Memory& mem) {
-        // Backup IP
-        const u32 IP = tpu.getIP();
-        tpu.setReg32(RegCode::RP, IP);
-
-        // Call
         const u8 controlByte = tpu.nextByte(mem);
         const u8 MOD = IMOD(controlByte);
         const bool isAbsAddrMode = IADDRMODE(controlByte) == ADDR_MODE_ABS;
-        switch (MOD) {
-            case 0: tpu.setIP( isAbsAddrMode ? tpu.nextDWord(mem).dword : (IP + static_cast<s32>(tpu.nextDWord(mem).dword)) ); break;
-            case 1: tpu.setIP( tpu.readReg32(tpu.nextReg(mem)) ); break;
-            default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for CALL.");
+
+        if (MOD == 0) {
+            const u32 addr = tpu.nextDWord(mem).dword;
+            const u32 IP = tpu.getIP(); // Get IP AFTER instruction
+            tpu.setReg32( RegCode::RP, IP ); // Backup IP
+
+            // Update IP AFTER backing it up
+            tpu.setIP( isAbsAddrMode ? addr : (IP + static_cast<s32>(addr)) );
+        } else if (MOD == 1) {
+            const u32 addr = tpu.readReg32(tpu.nextReg(mem));
+            tpu.setReg32( RegCode::RP, tpu.getIP() ); // Backup IP
+
+            // Update IP AFTER backing it up
+            tpu.setIP( addr );
+        } else {
+            throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for CALL.");
         }
     }
 
