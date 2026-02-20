@@ -26,18 +26,14 @@ def remove_comments(line: str) -> str:
     return line
 
 # Parses the arguments of a line into a list
-def parse_args(parts: list[str]) -> tuple:
+def parse_args(parts: list[str], fname: str, line: int) -> tuple:
     args = []
 
     """
-
+    
     TODO
-    - Distinguish rel32 from imm32
-    - Offset notation
-        - Would fix the rel32 addresses
-        - [IP + offset], [EAX - offset]
-        - ONLY for 32-bit registers
-
+    - Check bounds of integral values
+    
     """
 
     for part in parts:
@@ -60,10 +56,20 @@ def parse_args(parts: list[str]) -> tuple:
         elif reg := re.match(r"^EAX|EBX|ECX|EDX|ESP|EBP|ESI|EDI|RP$", part): # reg32
             args.append({ "type": "Reg32", "value": regcode(reg.group()) })
 
-        elif reg := re.match(r"^[_a-zA-Z0-9]+$", part): # Labels
+        elif reg := re.match(r"^[_a-zA-Z][_a-zA-Z0-9]*$", part): # Labels
             args.append({ "type": "Label", "value": reg.group() })
         elif reg := re.match(r"^@0x[0-9a-fA-F]+$", part): # Hex Addresses
             args.append({ "type": "Address", "value": int(reg.group()[3:], 16) })
+        elif reg := re.match(r"^\[\s*(EAX|EBX|ECX|EDX|ESP|EBP|ESI|EDI|RP|IP)\s*([\-\+])\s*(0x[0-9a-fA-F]+|\d+)\s*\]$", part): # rel32
+            sign = -1 if reg.group(2) == "-" else 1
+            offset_base = 16 if reg.group(3).startswith("0x") else 10
+            args.append({
+                "type": "Rel32",
+                "value": sign * int(reg.group(3)[(2 if offset_base == 16 else 0):], offset_base),
+                "reg": regcode(reg.group(1))
+            })
+        else:
+            raise TASMError(fname, line, f"Invalid argument: {part}")
 
     # Tuple-ize for fun
     return tuple( args )
@@ -94,7 +100,7 @@ def parse_input(fname: str, data: list[int]) -> None:
                 continue
 
             # Check for label
-            if reg := re.match(r"^([_a-zA-Z0-9]+):$", line):
+            if reg := re.match(r"^([_a-zA-Z][_a-zA-Z0-9]*):$", line):
                 label_name = reg.group(1)
                 continue
 
@@ -107,7 +113,7 @@ def parse_input(fname: str, data: list[int]) -> None:
                 if "" in parts:
                     raise TASMError(fname, line_num, f"Syntax error")
 
-                args = parse_args( parts )
+                args = parse_args( parts, fname, line_num )
                 print(args)
 
                 match inst:

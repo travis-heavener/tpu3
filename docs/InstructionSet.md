@@ -14,8 +14,9 @@ This file shows the complete instruction set for the 32-bit TPU3 architecture.
     - Ex: -1024, +0xBEEF
 - label: a symbolic location resolved by the assembler to a rel32
     - Ex: _start, my_label8
-- rel32: a 32-bit signed offset added to the IP AFTER the current instruction
-    - Ex: +1024, -0xBEEF
+- rel32: a 32-bit signed offset from a reg32
+    - If relative to IP, IP's value is the address AFTER the current instruction
+    - Ex: [IP + 0x12], [EAX - 99]
 - addr: an absolute 32-bit HEXADECIMAL memory address
     - Ex: @0xDEADBEEF, @0x1234ABCD
 
