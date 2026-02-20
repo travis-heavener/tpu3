@@ -39,6 +39,7 @@ namespace tpu {
             #define EXECUTE_INSTRUCTION(name) case inst::name: execute##name(*this, mem); break
             switch (instruction) {
                 // Control Instructions
+                case inst::NOP: break;
                 case inst::HLT: return;
                 EXECUTE_INSTRUCTION( SYSCALL );
                 EXECUTE_INSTRUCTION( SYSRET );
