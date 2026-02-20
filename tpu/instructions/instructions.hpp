@@ -43,6 +43,8 @@ namespace tpu {
     };
 
     // Control Instructions
+    void executeSYSCALL(TPU&, Memory&);
+    void executeSYSRET(TPU&, Memory&);
     void executeCALL(TPU&, Memory&);
     void executeRET(TPU&, Memory&);
     void executeJMP(TPU&, Memory&);

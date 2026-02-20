@@ -12,13 +12,13 @@ namespace tpu {
         EAX = EBX = ECX = EDX = {0};
         IP = RP = ESP = EBP = ESI = EDI = {0};
 
+        SRP = KSP = {0};
+
         FLAGS = {0};
         currentMode = TPUMode::USER;
     }
 
-    TPU::~TPU() {
-        // Clean up
-    }
+    TPU::~TPU() { /* STUB */ }
 
     // Starts the clock
     void TPU::start(Memory& mem, std::atomic<bool>& isExiting) {
@@ -40,6 +40,8 @@ namespace tpu {
             switch (instruction) {
                 // Control Instructions
                 case inst::HLT: return;
+                EXECUTE_INSTRUCTION( SYSCALL );
+                EXECUTE_INSTRUCTION( SYSRET );
                 EXECUTE_INSTRUCTION( CALL );
                 EXECUTE_INSTRUCTION( RET  );
                 EXECUTE_INSTRUCTION( JMP  );
@@ -134,6 +136,7 @@ namespace tpu {
             case RegCode::EBP: this->EBP.dword = v; break;
             case RegCode::ESI: this->ESI.dword = v; break;
             case RegCode::EDI: this->EDI.dword = v; break;
+            case RegCode::RP: this->RP.dword = v; break;
             case RegCode::IP:
                 throw InvalidRegCodeException("Cannot write to IP register.");
             default:
@@ -181,6 +184,7 @@ namespace tpu {
             case RegCode::EBP: return this->EBP.dword;
             case RegCode::ESI: return this->ESI.dword;
             case RegCode::EDI: return this->EDI.dword;
+            case RegCode::RP:  return this->RP.dword;
             case RegCode::IP:  return this->IP.dword;
             default:
                 throw InvalidRegCodeException("readReg32: " + std::to_string(static_cast<int>(rc)));
@@ -235,6 +239,8 @@ namespace tpu {
 
         std::printf("IP:  0x%08x\n", IP.dword);
         std::printf("RP:  0x%08x\n", RP.dword);
+        std::printf("SRP: 0x%08x\n", SRP.dword);
+        std::printf("KSP: 0x%08x\n", KSP.dword);
         std::printf("ESP: 0x%08x    SP: 0x%04x\n", ESP.dword, ESP.lword);
         std::printf("EBP: 0x%08x    BP: 0x%04x\n", EBP.dword, EBP.lword);
         std::printf("ESI: 0x%08x    SI: 0x%04x\n", ESI.dword, ESI.lword);

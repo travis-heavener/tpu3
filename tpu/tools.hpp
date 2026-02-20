@@ -28,6 +28,8 @@ namespace tpu {
     EXCEPTION_MSG_CLASS(InvalidInstructionException);
     EXCEPTION_MSG_CLASS(InvalidMODBitsException);
     EXCEPTION_MSG_CLASS(InvalidRegCodeException);
+    EXCEPTION_MSG_CLASS(InvalidSyscallException);
+    EXCEPTION_MSG_CLASS(InsufficientModeException);
 
     // Data types
     typedef uint64_t u64;
@@ -52,7 +54,7 @@ namespace tpu {
         EBP = 0x13, BP = 0x14,
         ESI = 0x15, SI = 0x16,
         EDI = 0x17, DI = 0x18,
-        RP = 0x19
+        RP = 0x19, SRP = 0x1A
     };
 
     // String to uints

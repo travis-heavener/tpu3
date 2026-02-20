@@ -43,4 +43,10 @@
 // The length of the syscall table in memory
 #define SYSCALL_TABLE_SIZE  0x400
 
+// The address of the start of the kernel stack space
+#define KERNEL_STACK_LOWER  0x0000'0500
+
+// The size of the kernel's stack
+#define KERNEL_STACK_SIZE   0x1'0000
+
 #endif

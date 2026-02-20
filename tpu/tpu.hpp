@@ -67,6 +67,18 @@ namespace tpu {
             u32 getIP() const { return IP.dword; };
             void setIP(const u32 n) { IP.dword = n; };
 
+            u32 getRP() const { return RP.dword; };
+            void setRP(const u32 n) { RP.dword = n; };
+
+            u32 getSRP() const { return SRP.dword; };
+            void setSRP(const u32 n) { SRP.dword = n; };
+
+            void saveESPtoKSP() { KSP.dword = ESP.dword; };
+            void restoreESPfromKSP() { ESP.dword = KSP.dword; };
+
+            u32 getESP() const { return ESP.dword; };
+            void setESP(const u32 n) { ESP.dword = n; };
+
             // Push/pop shorthands
             void pushByte(Memory& mem, const u8 b);
             void pushWord(Memory& mem, const u16 w);
@@ -81,6 +93,9 @@ namespace tpu {
 
             bool isFlag(const int f) const { return (FLAGS.word & (1u << f)) != 0; };
             void setFlag(const int f, const bool b);
+
+            TPUMode getMode() const { return currentMode; };
+            void setMode(const TPUMode mode) { currentMode = mode; };
 
             // Debug dumps all registers to stdout
             void dumpRegs() const;
@@ -97,6 +112,10 @@ namespace tpu {
             reg32 EBP; // Base ptr
             reg32 ESI; // Source index
             reg32 EDI; // Dest index
+
+            // Kernel space registers
+            reg32 SRP; // Syscall return ptr
+            reg32 KSP; // Kernel backup for stack ptr during syscalls
 
             // Processor flags
             reg16 FLAGS;

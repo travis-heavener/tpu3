@@ -5,6 +5,46 @@
 namespace tpu {
 
     // Instruction handler methods
+    void executeSYSCALL(TPU& tpu, Memory& mem) {
+        if (tpu.getMode() != TPUMode::USER)
+            throw tpu::InsufficientModeException("Attempted to call syscall from kernel mode.");
+
+        const u32 syscallNumber = static_cast<u32>( tpu.nextByte(mem) );
+
+        // Verify syscall number is valid
+        if (syscallNumber >= SYSCALL_TABLE_SIZE / 4)
+            throw tpu::InvalidSyscallException(std::to_string(static_cast<int>(syscallNumber)) + " is an invalid syscall.");
+
+        // Backup IP after reading instruction
+        tpu.setSRP( tpu.getIP() );
+
+        // Determine address of syscall address from syscall table
+        const u32 tableAddr = SYSCALL_TABLE_FIRST + 4 * syscallNumber;
+
+        // Move stack ptr to kernel stack
+        tpu.saveESPtoKSP(); // Backup SP
+        tpu.setESP( KERNEL_STACK_LOWER );
+
+        // Enter kernel mode
+        tpu.setMode( TPUMode::KERNEL );
+
+        // Dereference the syscall table address ptr
+        tpu.setIP( mem.readDWord(tableAddr).dword );
+    }
+
+    void executeSYSRET(TPU& tpu, Memory&) {
+        if (tpu.getMode() != TPUMode::KERNEL)
+            throw tpu::InsufficientModeException("Attempted to call sysret from non-kernel mode.");
+
+        // Revert to last IP stored in the syscall return ptr (SRP)
+        tpu.setIP( tpu.getSRP() );
+
+        // Revert stack ptr
+        tpu.restoreESPfromKSP();
+
+        // Drop to user mode
+        tpu.setMode( TPUMode::USER );
+    }
 
     void executeCALL(TPU& tpu, Memory& mem) {
         const u8 controlByte = tpu.nextByte(mem);
@@ -14,13 +54,13 @@ namespace tpu {
         if (MOD == 0) {
             const u32 addr = tpu.nextDWord(mem).dword;
             const u32 IP = tpu.getIP(); // Get IP AFTER instruction
-            tpu.setReg32( RegCode::RP, IP ); // Backup IP
+            tpu.setRP( IP ); // Backup IP
 
             // Update IP AFTER backing it up
             tpu.setIP( isAbsAddrMode ? addr : (IP + static_cast<s32>(addr)) );
         } else if (MOD == 1) {
             const u32 addr = tpu.readReg32(tpu.nextReg(mem));
-            tpu.setReg32( RegCode::RP, tpu.getIP() ); // Backup IP
+            tpu.setRP( tpu.getIP() ); // Backup IP
 
             // Update IP AFTER backing it up
             tpu.setIP( addr );

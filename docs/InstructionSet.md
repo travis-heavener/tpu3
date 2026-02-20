@@ -34,7 +34,7 @@ Refer to the following diagram for how the specific bits of each instruction are
 0             7 8    10 11  12  14        15
 [   OPCODE    ] [ MOD ] [S] [M] [ Reserved ]
 
-Total: 2 bytes (16 bits) + arguments
+Total: 1 byte (8 bits) + arguments if NO modifier fields are present, 2 bytes (16 bits) + arguments otherwise
 ```
 
 ## Control Instructions
@@ -43,8 +43,8 @@ Total: 2 bytes (16 bits) + arguments
 |---------|-------|-------|--------|-----|------------|-------------------------------------------------------------------------------------|
 | nop     |    -- |    -- |   0x00 |  -- |         -- | No operation.                                                                       |
 | hlt     |    -- |    -- |   0x01 |  -- |         -- | Stops CPU clock.                                                                    |
-| syscall |  imm8 |    -- |   0x02 |  -- |         -- | Triggers a syscall, entering kernel mode for protected instructions. See `call`.    |
-| sysret  |       |    -- |   0x03 |  -- |         -- | Returns from a syscall, exiting kernel mode and returning to user mode. See `ret`.  |
+| syscall |  imm8 |    -- |   0x02 |  -- |         -- | Triggers a syscall, entering kernel mode storing the return address in SRP.         |
+| sysret  |       |    -- |   0x03 |  -- |         -- | Returns from a syscall, returning to user mode to the return address in SRP.        |
 | call    | rel32 |    -- |   0x04 |   0 |   Rel. (0) | Offsets the IP by the rel32, storing the current IP in RP.                          |
 | call    |  addr |    -- |   0x04 |   0 |   Abs. (1) | Moves the IP to a new memory address, storing the current IP in RP.                 |
 | call    | reg32 |    -- |   0x04 |   1 |         -- | Moves the IP to a memory address from a reg32, storing the current IP in RP.        |
