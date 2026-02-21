@@ -13,7 +13,7 @@ This file shows the complete instruction set for the 32-bit TPU3 architecture.
 - simm8/simm16/simm32: 8/16/32-bit signed immediate value (MUST have a sign, +/-)
     - Ex: -1024, +0xBEEF
 - ximm8/ximm16/ximm32: refers to either signed OR unsigned immediate values
-- label: a symbolic location resolved by the assembler to a rel32
+- label: a symbolic location resolved by the assembler to a rel32 offset of the IP
     - Ex: _start, my_label8
 - rel32: a simm32 offset from a reg32
     - If relative to IP, IP's value is the address AFTER the current instruction
