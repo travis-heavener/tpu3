@@ -49,41 +49,41 @@ Total: 1 byte (8 bits) + arguments if NO modifier fields are present, 2 bytes (1
 | hlt     |    -- |    -- |   0x01 |  -- |         -- | Stops CPU clock.                                                                    |
 | syscall |    -- |    -- |   0x02 |  -- |         -- | Triggers a syscall based on the value in EAX, storing the return address in SRP.    |
 | sysret  |       |    -- |   0x03 |  -- |         -- | Returns from a syscall to user mode via the return address in SRP.                  |
-| call    | rel32 |    -- |   0x04 |   0 |   Rel. (0) | Offsets the IP by the rel32, storing the current IP in RP.                          |
+| call    | rel32 |    -- |   0x04 |   0 |   Rel. (0) | Moves the IP to a new memory address, storing the current IP in RP.                 |
 | call    |  addr |    -- |   0x04 |   0 |   Abs. (1) | Moves the IP to a new memory address, storing the current IP in RP.                 |
 | call    | reg32 |    -- |   0x04 |   1 |         -- | Moves the IP to a memory address from a reg32, storing the current IP in RP.        |
 | ret     |    -- |    -- |   0x05 |  -- |         -- | Reverts the IP to the previous memory address stored in RP.                         |
-| jmp     | rel32 |    -- |   0x06 |   0 |   Rel. (0) | Offsets the IP by a rel32.                                                          |
+| jmp     | rel32 |    -- |   0x06 |   0 |   Rel. (0) | Moves the IP to a new memory address.                                               |
 | jmp     |  addr |    -- |   0x06 |   0 |   Abs. (1) | Moves the IP to a new memory address.                                               |
 | jmp     | reg32 |    -- |   0x06 |   1 |         -- | Moves the IP to a memory address from a reg32.                                      |
-| jz      | rel32 |    -- |   0x07 |   0 |   Rel. (0) | If the zero flag (ZF) is set, offsets the IP by a rel32.                            |
+| jz      | rel32 |    -- |   0x07 |   0 |   Rel. (0) | If the zero flag (ZF) is set, moves the IP to a new memory address.                 |
 | jz      |  addr |    -- |   0x07 |   0 |   Abs. (1) | If the zero flag (ZF) is set, moves the IP to a new memory address.                 |
 | jz      | reg32 |    -- |   0x07 |   1 |         -- | If the zero flag (ZF) is set, moves the IP to a memory address from a reg32.        |
-| jnz     | rel32 |    -- |   0x07 |   2 |   Rel. (0) | If the zero flag (ZF) is clear, offsets the IP by a rel32.                          |
+| jnz     | rel32 |    -- |   0x07 |   2 |   Rel. (0) | If the zero flag (ZF) is clear, moves the IP to a new memory address.               |
 | jnz     |  addr |    -- |   0x07 |   2 |   Abs. (1) | If the zero flag (ZF) is clear, moves the IP to a new memory address.               |
 | jnz     | reg32 |    -- |   0x07 |   3 |         -- | If the zero flag (ZF) is clear, moves the IP to a memory address from a reg32.      |
-| jc      | rel32 |    -- |   0x08 |   0 |   Rel. (0) | If the carry flag (CF) is set, offsets the IP by a rel32.                           |
+| jc      | rel32 |    -- |   0x08 |   0 |   Rel. (0) | If the carry flag (CF) is set, moves the IP to a new memory address.                |
 | jc      |  addr |    -- |   0x08 |   0 |   Abs. (1) | If the carry flag (CF) is set, moves the IP to a new memory address.                |
 | jc      | reg32 |    -- |   0x08 |   1 |         -- | If the carry flag (CF) is set, moves the IP to a memory address from a reg32.       |
-| jnc     | rel32 |    -- |   0x08 |   2 |   Rel. (0) | If the carry flag (CF) is clear, offsets the IP by a rel32.                         |
+| jnc     | rel32 |    -- |   0x08 |   2 |   Rel. (0) | If the carry flag (CF) is clear, moves the IP to a new memory address.              |
 | jnc     |  addr |    -- |   0x08 |   2 |   Abs. (1) | If the carry flag (CF) is clear, moves the IP to a new memory address.              |
 | jnc     | reg32 |    -- |   0x08 |   3 |         -- | If the carry flag (CF) is clear, moves the IP to a memory address from a reg32.     |
-| jo      | rel32 |    -- |   0x09 |   0 |   Rel. (0) | If the overflow flag (OF) is set, offsets the IP by a rel32.                        |
+| jo      | rel32 |    -- |   0x09 |   0 |   Rel. (0) | If the overflow flag (OF) is set, moves the IP to a new memory address.             |
 | jo      |  addr |    -- |   0x09 |   0 |   Abs. (1) | If the overflow flag (OF) is set, moves the IP to a new memory address.             |
 | jo      | reg32 |    -- |   0x09 |   1 |         -- | If the overflow flag (OF) is set, moves the IP to a memory address from a reg32.    |
-| jno     | rel32 |    -- |   0x09 |   2 |   Rel. (0) | If the overflow flag (OF) is clear, offsets the IP by a rel32.                      |
+| jno     | rel32 |    -- |   0x09 |   2 |   Rel. (0) | If the overflow flag (OF) is clear, moves the IP to a new memory address.           |
 | jno     |  addr |    -- |   0x09 |   2 |   Abs. (1) | If the overflow flag (OF) is clear, moves the IP to a new memory address.           |
 | jno     | reg32 |    -- |   0x09 |   3 |         -- | If the overflow flag (OF) is clear, moves the IP to a memory address from a reg32.  |
-| js      | rel32 |    -- |   0x0A |   0 |   Rel. (0) | If the sign flag (SF) is set, offsets the IP by a rel32.                            |
+| js      | rel32 |    -- |   0x0A |   0 |   Rel. (0) | If the sign flag (SF) is set, moves the IP to a new memory address.                 |
 | js      |  addr |    -- |   0x0A |   0 |   Abs. (1) | If the sign flag (SF) is set, moves the IP to a new memory address.                 |
 | js      | reg32 |    -- |   0x0A |   1 |         -- | If the sign flag (SF) is set, moves the IP to a memory address from a reg32.        |
-| jns     | rel32 |    -- |   0x0A |   2 |   Rel. (0) | If the sign flag (SF) is clear, offsets the IP by a rel32.                          |
+| jns     | rel32 |    -- |   0x0A |   2 |   Rel. (0) | If the sign flag (SF) is clear, moves the IP to a new memory address.               |
 | jns     |  addr |    -- |   0x0A |   2 |   Abs. (1) | If the sign flag (SF) is clear, moves the IP to a new memory address.               |
 | jns     | reg32 |    -- |   0x0A |   3 |         -- | If the sign flag (SF) is clear, moves the IP to a memory address from a reg32.      |
-| jp      | rel32 |    -- |   0x0B |   0 |   Rel. (0) | If the parity flag (PF) is set, offsets the IP by a rel32.                          |
+| jp      | rel32 |    -- |   0x0B |   0 |   Rel. (0) | If the parity flag (PF) is set, moves the IP to a new memory address.               |
 | jp      |  addr |    -- |   0x0B |   0 |   Abs. (1) | If the parity flag (PF) is set, moves the IP to a new memory address.               |
 | jp      | reg32 |    -- |   0x0B |   1 |         -- | If the parity flag (PF) is set, moves the IP to a memory address from a reg32.      |
-| jnp     | rel32 |    -- |   0x0B |   2 |   Rel. (0) | If the parity flag (PF) is clear, offsets the IP by a rel32.                        |
+| jnp     | rel32 |    -- |   0x0B |   2 |   Rel. (0) | If the parity flag (PF) is clear, moves the IP to a new memory address.             |
 | jnp     |  addr |    -- |   0x0B |   2 |   Abs. (1) | If the parity flag (PF) is clear, moves the IP to a new memory address.             |
 | jnp     | reg32 |    -- |   0x0B |   3 |         -- | If the parity flag (PF) is clear, moves the IP to a memory address from a reg32.    |
 
@@ -92,11 +92,11 @@ Total: 1 byte (8 bits) + arguments if NO modifier fields are present, 2 bytes (1
 | Inst.  | Op. A  | Op. B | OpCode | MOD | Description                                                |
 |--------|--------|-------|--------|-----|------------------------------------------------------------|
 | mov    |   reg8 |  imm8 |   0x10 |   0 | Moves an imm8 value into a reg8.                           |
-| movw   |  reg16 | imm16 |   0x10 |   1 | Moves an imm16 value into a reg16.                         |
-| movdw  |  reg32 | imm32 |   0x10 |   2 | Moves an imm32 value into a reg32.                         |
-| mov    |   reg8 |  reg8 |   0x10 |   3 | Moves an 8-bit value between two reg8.                     |
-| movw   |  reg16 | reg16 |   0x10 |   4 | Moves an 16-bit value between two reg16.                   |
-| movdw  |  reg32 | reg32 |   0x10 |   5 | Moves an 32-bit value between two reg32.                   |
+| --     |  reg16 | imm16 |   0x10 |   1 | Moves an imm16 value into a reg16.                         |
+| --     |  reg32 | imm32 |   0x10 |   2 | Moves an imm32 value into a reg32.                         |
+| --     |   reg8 |  reg8 |   0x10 |   3 | Moves an 8-bit value between two reg8.                     |
+| --     |  reg16 | reg16 |   0x10 |   4 | Moves an 16-bit value between two reg16.                   |
+| --     |  reg32 | reg32 |   0x10 |   5 | Moves an 32-bit value between two reg32.                   |
 | lb     |   reg8 |  addr |   0x11 |   0 | Loads a byte from a memory address into a reg8.            |
 | lw     |  reg16 |  addr |   0x11 |   1 | Loads a word starting at a memory address into a reg16.    |
 | ldw    |  reg32 |  addr |   0x11 |   2 | Loads a dword starting at a memory address into a reg32.   |
