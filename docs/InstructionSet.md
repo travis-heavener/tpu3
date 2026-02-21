@@ -15,8 +15,9 @@ This file shows the complete instruction set for the 32-bit TPU3 architecture.
 - ximm8/ximm16/ximm32: refers to either signed OR unsigned immediate values
 - label: a symbolic location resolved by the assembler to a rel32
     - Ex: _start, my_label8
-- rel32: a 32-bit signed offset from a reg32
+- rel32: a simm32 offset from a reg32
     - If relative to IP, IP's value is the address AFTER the current instruction
+    - Stores the reg32 code in a byte, then the 4-byte simm32 immediately after
     - Ex: [IP + 0x12], [EAX - 99]
 - addr: an absolute 32-bit HEXADECIMAL memory address
     - Ex: @0xDEADBEEF, @0x1234ABCD

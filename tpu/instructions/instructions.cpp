@@ -52,12 +52,18 @@ namespace tpu {
         const bool isAbsAddrMode = IADDRMODE(controlByte) == ADDR_MODE_ABS;
 
         if (MOD == 0) {
-            const u32 addr = tpu.nextDWord(mem).dword;
-            const u32 IP = tpu.getIP(); // Get IP AFTER instruction
-            tpu.setRP( IP ); // Backup IP
+            if (isAbsAddrMode) { // addr
+                const u32 addr = tpu.nextDWord(mem).dword;
+                tpu.setRP( tpu.getIP() ); // Backup IP AFTER instruction
+                tpu.setIP( addr );
+            } else { // rel32
+                const RegCode reg = tpu.nextReg(mem);
+                const s32 offset = static_cast<s32>( tpu.nextDWord(mem).dword );
+                const u32 base = tpu.readReg32( reg ); // Read register AFTER instruction, in case it's IP
 
-            // Update IP AFTER backing it up
-            tpu.setIP( isAbsAddrMode ? addr : (IP + static_cast<s32>(addr)) );
+                tpu.setRP( tpu.getIP() ); // Backup IP AFTER instruction
+                tpu.setIP( base + static_cast<u32>(offset) );
+            }
         } else if (MOD == 1) {
             const u32 addr = tpu.readReg32(tpu.nextReg(mem));
             tpu.setRP( tpu.getIP() ); // Backup IP
@@ -77,9 +83,18 @@ namespace tpu {
         const u8 controlByte = tpu.nextByte(mem);
         const u8 MOD = IMOD(controlByte);
         const bool isAbsAddrMode = IADDRMODE(controlByte) == ADDR_MODE_ABS;
-        const u32 IP = tpu.getIP();
         switch (MOD) {
-            case 0: tpu.setIP( isAbsAddrMode ? tpu.nextDWord(mem).dword : (IP + static_cast<s32>(tpu.nextDWord(mem).dword)) ); break;
+            case 0: {
+                if (isAbsAddrMode) { // addr
+                    tpu.setIP( tpu.nextDWord(mem).dword );
+                } else { // rel32
+                    const RegCode reg = tpu.nextReg(mem);
+                    const s32 offset = static_cast<s32>( tpu.nextDWord(mem).dword );
+                    const u32 base = tpu.readReg32( reg ); // Read register AFTER instruction, in case it's IP
+                    tpu.setIP( base + static_cast<u32>(offset) );
+                }
+                break;
+            }
             case 1: tpu.setIP( tpu.readReg32(tpu.nextReg(mem)) ); break;
             default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for JMP.");
         }
@@ -89,12 +104,41 @@ namespace tpu {
         void execute##name(TPU& tpu, Memory& mem) { \
             const u8 controlByte = tpu.nextByte(mem); \
             const bool isAbsAddrMode = IADDRMODE(controlByte) == ADDR_MODE_ABS; \
-            const u32 IP = tpu.getIP(); \
             switch (IMOD(controlByte)) { \
-                case 0: if (tpu.isFlag(flag))  tpu.setIP( isAbsAddrMode ? tpu.nextDWord(mem).dword : (IP + static_cast<s32>(tpu.nextDWord(mem).dword)) ); break; \
-                case 1: if (tpu.isFlag(flag))  tpu.setIP( tpu.readReg32(tpu.nextReg(mem)) ); break; \
-                case 2: if (!tpu.isFlag(flag)) tpu.setIP( isAbsAddrMode ? tpu.nextDWord(mem).dword : (IP + static_cast<s32>(tpu.nextDWord(mem).dword)) ); break; \
-                case 3: if (!tpu.isFlag(flag)) tpu.setIP( tpu.readReg32(tpu.nextReg(mem)) ); break; \
+                case 0: { \
+                    if (isAbsAddrMode) { /* addr */ \
+                        const u32 addr = tpu.nextDWord(mem).dword; \
+                        if (tpu.isFlag(flag)) tpu.setIP( addr ); \
+                    } else { /* rel32 */ \
+                        const RegCode reg = tpu.nextReg(mem); \
+                        const s32 offset = static_cast<s32>( tpu.nextDWord(mem).dword ); \
+                        const u32 base = tpu.readReg32( reg ); /* Read register AFTER instruction, in case it's IP */ \
+                        if (tpu.isFlag(flag)) tpu.setIP( base + static_cast<u32>(offset) ); \
+                    } \
+                    break; \
+                } \
+                case 1: { \
+                    const u32 addr = tpu.readReg32(tpu.nextReg(mem)); \
+                    if (tpu.isFlag(flag)) tpu.setIP( addr ); \
+                    break; \
+                } \
+                case 2: { \
+                    if (isAbsAddrMode) { /* addr */ \
+                        const u32 addr = tpu.nextDWord(mem).dword; \
+                        if (!tpu.isFlag(flag)) tpu.setIP( addr ); \
+                    } else { /* rel32 */ \
+                        const RegCode reg = tpu.nextReg(mem); \
+                        const s32 offset = static_cast<s32>( tpu.nextDWord(mem).dword ); \
+                        const u32 base = tpu.readReg32( reg ); /* Read register AFTER instruction, in case it's IP */ \
+                        if (!tpu.isFlag(flag)) tpu.setIP( base + static_cast<u32>(offset) ); \
+                    } \
+                    break; \
+                } \
+                case 3: { \
+                    const u32 addr = tpu.readReg32(tpu.nextReg(mem)); \
+                    if (!tpu.isFlag(flag)) tpu.setIP( addr ); \
+                    break; \
+                } \
                 default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(IMOD(controlByte))) + " is invalid for " #name "."); \
             } \
         }
