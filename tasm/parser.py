@@ -4,6 +4,16 @@ class TASMError(Exception):
     def __init__(self, fname: str, line: int, msg: str):
         super().__init__(f"TASMError:\n  From: {fname}:{line}\n    {msg}")
 
+# Returns True if the SIGNED value fits into the number of bits provided
+def does_signed_fit(val: int, bits: int) -> bool:
+    valmax = (2 ** (bits-1)) - 1
+    valmin = 2 ** (bits-1)
+    return valmin <= val and val <= valmax
+
+# Returns True if the UNSIGNED value fits into the number of bits provided
+def does_unsigned_fit(val: int, bits: int) -> bool:
+    return 0 <= val and val <= ((2 ** bits) - 1)
+
 # Returns a line without any additional comments on it
 def remove_comments(line: str) -> str:
     # Find first comment character (;)
