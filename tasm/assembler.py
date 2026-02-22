@@ -137,6 +137,7 @@ def parse_input(fname: str, data: list[int]) -> None:
                     case "ret":     data.append(Inst.RET)
                     case "jmp" | "jz" | "jnz" | "jc" | "jnc" | "jo" | "jno" | "js" | "jns" | "jp" | "jnp":
                         assembleJMPLike(inst, args, data, labels_to_replace)
+                    case "mov":     assembleMOV(args, data)
                     case _: raise TASMError(f"Invalid instruction: {inst}")
             elif section == "data":
                 # Check for data

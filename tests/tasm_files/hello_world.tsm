@@ -1,7 +1,7 @@
 section text
-    fun:
-        mov AX, 12
-        ret
     _start:
         call fun
         hlt
+    fun:
+        mov AL, 128
+        ret

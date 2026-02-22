@@ -158,3 +158,54 @@ def assembleJMPLike(inst: str, args: tuple[Arg], data: list[int], labels: list[L
         cbyte += 2 if is_inverse_flag else 0    # Differentiate jz vs jnz, for example
         data.append(cbyte)                      # Append control byte
         data.append(args[0].value)              # Append regcode
+    else:
+        raise TASMError("Invalid argument format to CALL or JMP-like")
+
+def assembleMOV(args: tuple[Arg], data: list[int]) -> None:
+    # Check args length
+    if len(args) != 2: raise TASMError(f"Invalid number of arguments for MOV: {len(args)}")
+
+    data.append(Inst.MOV)
+
+    # Determine MOD bits
+    if args[0].type == "Reg8" and (args[1].type == "Immediate" or args[1].type == "SignedImmediate"):
+        data.append( 0 )                # Append MOD
+        data.append( args[0].value )    # Append first reg
+
+        # Add immediate
+        if args[1].type == "SignedImmediate":
+            simm_to_bytes( args[1].value, 8, data )
+        else:
+            imm_to_bytes( args[1].value, 8, data )
+    elif args[0].type == "Reg16" and (args[1].type == "Immediate" or args[1].type == "SignedImmediate"):
+        data.append( 1 )                # Append MOD
+        data.append( args[0].value )    # Append first reg
+
+        # Add immediate
+        if args[1].type == "SignedImmediate":
+            simm_to_bytes( args[1].value, 16, data )
+        else:
+            imm_to_bytes( args[1].value, 16, data )
+    elif args[0].type == "Reg32" and (args[1].type == "Immediate" or args[1].type == "SignedImmediate"):
+        data.append( 2 )                # Append MOD
+        data.append( args[0].value )    # Append first reg
+
+        # Add immediate
+        if args[1].type == "SignedImmediate":
+            simm_to_bytes( args[1].value, 32, data )
+        else:
+            imm_to_bytes( args[1].value, 32, data )
+    elif args[0].type == "Reg8" and args[1].type == "Reg8":
+        data.append( 3 )                # Append MOD
+        data.append( args[0].value )    # Append first reg
+        data.append( args[1].value )    # Append second reg
+    elif args[0].type == "Reg16" and args[1].type == "Reg16":
+        data.append( 4 )                # Append MOD
+        data.append( args[0].value )    # Append first reg
+        data.append( args[1].value )    # Append second reg
+    elif args[0].type == "Reg32" and args[1].type == "Reg32":
+        data.append( 5 )                # Append MOD
+        data.append( args[0].value )    # Append first reg
+        data.append( args[1].value )    # Append second reg
+    else:
+        raise TASMError("Invalid argument format to MOV")
