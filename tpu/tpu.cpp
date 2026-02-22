@@ -15,7 +15,7 @@ namespace tpu {
         SRP = KSP = {0};
 
         FLAGS = {0};
-        currentMode = TPUMode::USER;
+        currentMode = TPUMode::KERNEL;
     }
 
     TPU::~TPU() { /* STUB */ }
