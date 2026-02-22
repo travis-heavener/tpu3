@@ -90,32 +90,44 @@ Total: 1 byte (8 bits) + arguments if NO modifier fields are present, 2 bytes (1
 
 ## Register & Memory Instructions
 
-| Inst.  | Op. A  | Op. B  | OpCode | MOD | Description                                                |
-|--------|--------|--------|--------|-----|------------------------------------------------------------|
-| mov    |   reg8 |  ximm8 |   0x10 |   0 | Moves an imm8 or simm8 value into a reg8.                  |
-| --     |  reg16 | ximm16 |   0x10 |   1 | Moves an imm16 or simm16 value into a reg16.               |
-| --     |  reg32 | ximm32 |   0x10 |   2 | Moves an imm32 or simm32 value into a reg32.               |
-| --     |   reg8 |   reg8 |   0x10 |   3 | Moves an 8-bit value between two reg8.                     |
-| --     |  reg16 |  reg16 |   0x10 |   4 | Moves an 16-bit value between two reg16.                   |
-| --     |  reg32 |  reg32 |   0x10 |   5 | Moves an 32-bit value between two reg32.                   |
-| lb     |   reg8 |   addr |   0x11 |   0 | Loads a byte from a memory address into a reg8.            |
-| lw     |  reg16 |   addr |   0x11 |   1 | Loads a word starting at a memory address into a reg16.    |
-| ldw    |  reg32 |   addr |   0x11 |   2 | Loads a dword starting at a memory address into a reg32.   |
-| sb     |   reg8 |   addr |   0x12 |   0 | Saves a byte from a reg8 to an address.                    |
-| sw     |  reg16 |   addr |   0x12 |   1 | Saves a word from a reg16 to an address.                   |
-| sdw    |  reg32 |   addr |   0x12 |   2 | Saves a dword from a reg32 to an address.                  |
-| push   |   reg8 |     -- |   0x13 |   0 | Pushes the value of a reg8 onto the top of the stack.      |
-| --     |  ximm8 |     -- |   0x13 |   1 | Pushes an imm8 OR simm8 value onto the top of the stack.   |
-| pushw  |  reg16 |     -- |   0x13 |   2 | Pushes the value of a reg16 onto the top of the stack.     |
-| --     | ximm16 |     -- |   0x13 |   3 | Pushes an imm16 OR simm16 value onto the top of the stack. |
-| pushdw |  reg32 |     -- |   0x13 |   4 | Pushes the value of a reg32 the top of the stack.          |
-| --     | ximm32 |     -- |   0x13 |   5 | Pushes an imm32 OR simm32 value onto the top of the stack. |
-| pop    |   reg8 |     -- |   0x14 |   0 | Pops the top byte of the stack into a reg8.                |
-| --     |     -- |     -- |   0x14 |   1 | Discards the top byte of the stack.                        |
-| popw   |  reg16 |     -- |   0x14 |   2 | Pops the top word of the stack into a reg16.               |
-| --     |     -- |     -- |   0x14 |   3 | Discards the top word of the stack.                        |
-| popdw  |  reg32 |     -- |   0x14 |   4 | Pops the top dword of the stack into a reg32.              |
-| --     |     -- |     -- |   0x14 |   5 | Discards the top dword of the stack.                       |
+| Inst.  | Op. A  | Op. B  | OpCode | MOD | Addr. Mode | Description                                                |
+|--------|--------|--------|--------|-----|------------|------------------------------------------------------------|
+| mov    |   reg8 |  ximm8 |   0x10 |   0 |         -- | Moves an imm8 or simm8 value into a reg8.                  |
+| --     |  reg16 | ximm16 |   0x10 |   1 |         -- | Moves an imm16 or simm16 value into a reg16.               |
+| --     |  reg32 | ximm32 |   0x10 |   2 |         -- | Moves an imm32 or simm32 value into a reg32.               |
+| --     |   reg8 |   reg8 |   0x10 |   3 |         -- | Moves an 8-bit value between two reg8.                     |
+| --     |  reg16 |  reg16 |   0x10 |   4 |         -- | Moves an 16-bit value between two reg16.                   |
+| --     |  reg32 |  reg32 |   0x10 |   5 |         -- | Moves an 32-bit value between two reg32.                   |
+| lb     |   reg8 |  rel32 |   0x11 |   0 |   Rel. (0) | Loads a byte from a memory address into a reg8.            |
+| --     |   reg8 |   addr |   0x11 |   0 |   Abs. (1) | Loads a byte from a memory address into a reg8.            |
+| --     |   reg8 |  reg32 |   0x11 |   1 |         -- | Loads a byte from a memory address in a reg32 to a reg8.   |
+| lw     |  reg16 |  rel32 |   0x11 |   2 |   Rel. (0) | Loads a word from a memory address into a reg16.           |
+| --     |  reg16 |   addr |   0x11 |   2 |   Abs. (1) | Loads a word from a memory address into a reg16.           |
+| --     |  reg16 |  reg32 |   0x11 |   3 |         -- | Loads a word from a memory address in a reg32 to a reg16.  |
+| ldw    |  reg32 |  rel32 |   0x11 |   4 |   Rel. (0) | Loads a dword from a memory address into a reg32.          |
+| --     |  reg32 |   addr |   0x11 |   4 |   Abs. (1) | Loads a dword from a memory address into a reg32.          |
+| --     |  reg32 |  reg32 |   0x11 |   5 |         -- | Loads a dword from a memory address in a reg32 to a reg32. |
+| sb     |   reg8 |  rel32 |   0x12 |   0 |   Rel. (0) | Saves a byte from a reg8 to an address.                    |
+| --     |   reg8 |   addr |   0x12 |   0 |   Abs. (1) | Saves a byte from a reg8 to an address.                    |
+| --     |   reg8 |  reg32 |   0x12 |   1 |         -- | Saves a byte from a reg8 to an address in a reg32.         |
+| sw     |  reg16 |  rel32 |   0x12 |   2 |   Rel. (0) | Saves a word from a reg16 to an address.                   |
+| --     |  reg16 |   addr |   0x12 |   2 |   Abs. (1) | Saves a word from a reg16 to an address.                   |
+| --     |  reg16 |  reg32 |   0x12 |   3 |         -- | Saves a word from a reg16 to an address in a reg32.        |
+| sdw    |  reg32 |  rel32 |   0x12 |   4 |   Rel. (0) | Saves a dword from a reg32 to an address.                  |
+| --     |  reg32 |   addr |   0x12 |   4 |   Abs. (1) | Saves a dword from a reg32 to an address.                  |
+| --     |  reg32 |  reg32 |   0x12 |   5 |         -- | Saves a dword from a reg32 to an address in a reg32.       |
+| push   |   reg8 |     -- |   0x13 |   0 |            | Pushes the value of a reg8 onto the top of the stack.      |
+| --     |  ximm8 |     -- |   0x13 |   1 |            | Pushes an imm8 OR simm8 value onto the top of the stack.   |
+| pushw  |  reg16 |     -- |   0x13 |   2 |            | Pushes the value of a reg16 onto the top of the stack.     |
+| --     | ximm16 |     -- |   0x13 |   3 |            | Pushes an imm16 OR simm16 value onto the top of the stack. |
+| pushdw |  reg32 |     -- |   0x13 |   4 |            | Pushes the value of a reg32 the top of the stack.          |
+| --     | ximm32 |     -- |   0x13 |   5 |            | Pushes an imm32 OR simm32 value onto the top of the stack. |
+| pop    |   reg8 |     -- |   0x14 |   0 |            | Pops the top byte of the stack into a reg8.                |
+| --     |     -- |     -- |   0x14 |   1 |            | Discards the top byte of the stack.                        |
+| popw   |  reg16 |     -- |   0x14 |   2 |            | Pops the top word of the stack into a reg16.               |
+| --     |     -- |     -- |   0x14 |   3 |            | Discards the top word of the stack.                        |
+| popdw  |  reg32 |     -- |   0x14 |   4 |            | Pops the top dword of the stack into a reg32.              |
+| --     |     -- |     -- |   0x14 |   5 |            | Discards the top dword of the stack.                       |
 
 ## Bitwise & Arithmetic Instructions
 

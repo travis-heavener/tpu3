@@ -91,6 +91,8 @@ namespace tpu {
             u16 readReg16(const RegCode) const;
             u32 readReg32(const RegCode) const;
 
+            u32 readRel32(Memory& mem);
+
             bool isFlag(const int f) const { return (FLAGS.word & (1u << f)) != 0; };
             void setFlag(const int f, const bool b);
 

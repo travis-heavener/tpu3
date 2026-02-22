@@ -84,17 +84,7 @@ namespace tpu {
         const u8 MOD = IMOD(controlByte);
         const bool isAbsAddrMode = IADDRMODE(controlByte) == ADDR_MODE_ABS;
         switch (MOD) {
-            case 0: {
-                if (isAbsAddrMode) { // addr
-                    tpu.setIP( tpu.nextDWord(mem).dword );
-                } else { // rel32
-                    const RegCode reg = tpu.nextReg(mem);
-                    const s32 offset = static_cast<s32>( tpu.nextDWord(mem).dword );
-                    const u32 base = tpu.readReg32( reg ); // Read register AFTER instruction, in case it's IP
-                    tpu.setIP( base + static_cast<u32>(offset) );
-                }
-                break;
-            }
+            case 0: tpu.setIP( isAbsAddrMode ? tpu.nextDWord(mem).dword : tpu.readRel32(mem) ); break;
             case 1: tpu.setIP( tpu.readReg32(tpu.nextReg(mem)) ); break;
             default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for JMP.");
         }
@@ -106,15 +96,8 @@ namespace tpu {
             const bool isAbsAddrMode = IADDRMODE(controlByte) == ADDR_MODE_ABS; \
             switch (IMOD(controlByte)) { \
                 case 0: { \
-                    if (isAbsAddrMode) { /* addr */ \
-                        const u32 addr = tpu.nextDWord(mem).dword; \
-                        if (tpu.isFlag(flag)) tpu.setIP( addr ); \
-                    } else { /* rel32 */ \
-                        const RegCode reg = tpu.nextReg(mem); \
-                        const s32 offset = static_cast<s32>( tpu.nextDWord(mem).dword ); \
-                        const u32 base = tpu.readReg32( reg ); /* Read register AFTER instruction, in case it's IP */ \
-                        if (tpu.isFlag(flag)) tpu.setIP( base + static_cast<u32>(offset) ); \
-                    } \
+                    const u32 addr = isAbsAddrMode ? tpu.nextDWord(mem).dword : tpu.readRel32(mem); \
+                    if (tpu.isFlag(flag)) tpu.setIP( addr ); \
                     break; \
                 } \
                 case 1: { \
@@ -123,15 +106,8 @@ namespace tpu {
                     break; \
                 } \
                 case 2: { \
-                    if (isAbsAddrMode) { /* addr */ \
-                        const u32 addr = tpu.nextDWord(mem).dword; \
-                        if (!tpu.isFlag(flag)) tpu.setIP( addr ); \
-                    } else { /* rel32 */ \
-                        const RegCode reg = tpu.nextReg(mem); \
-                        const s32 offset = static_cast<s32>( tpu.nextDWord(mem).dword ); \
-                        const u32 base = tpu.readReg32( reg ); /* Read register AFTER instruction, in case it's IP */ \
-                        if (!tpu.isFlag(flag)) tpu.setIP( base + static_cast<u32>(offset) ); \
-                    } \
+                    const u32 addr = isAbsAddrMode ? tpu.nextDWord(mem).dword : tpu.readRel32(mem); \
+                    if (!tpu.isFlag(flag)) tpu.setIP( addr ); \
                     break; \
                 } \
                 case 3: { \
@@ -166,25 +142,57 @@ namespace tpu {
     }
 
     void executeLB(TPU& tpu, Memory& mem) {
-        const u8 MOD = IMOD(tpu.nextByte(mem));
+        const u8 controlByte = tpu.nextByte(mem);
+        const u8 MOD = IMOD(controlByte);
+        const bool isAbsAddrMode = IADDRMODE(controlByte) == ADDR_MODE_ABS;
         const RegCode regA = tpu.nextReg(mem);
-        const u32 addr = tpu.nextDWord(mem).dword;
         switch (MOD) {
-            case 0: tpu.setReg8( regA, mem.readByte(addr) ); break;
-            case 1: tpu.setReg16( regA, mem.readWord(addr).word ); break;
-            case 2: tpu.setReg32( regA, mem.readDWord(addr).dword ); break;
+            case 0: {
+                const u32 addr = isAbsAddrMode ? tpu.nextDWord(mem).dword : tpu.readRel32(mem);
+                tpu.setReg8( regA, mem.readByte(addr) );
+                break;
+            }
+            case 1: tpu.setReg8( regA, mem.readByte(tpu.readReg32(tpu.nextReg(mem))) ); break;
+            case 2: {
+                const u32 addr = isAbsAddrMode ? tpu.nextDWord(mem).dword : tpu.readRel32(mem);
+                tpu.setReg16( regA, mem.readWord(addr).word );
+                break;
+            }
+            case 3: tpu.setReg16( regA, mem.readWord(tpu.readReg32(tpu.nextReg(mem))).word ); break;
+            case 4: {
+                const u32 addr = isAbsAddrMode ? tpu.nextDWord(mem).dword : tpu.readRel32(mem);
+                tpu.setReg32( regA, mem.readDWord(addr).dword );
+                break;
+            }
+            case 5: tpu.setReg32( regA, mem.readDWord(tpu.readReg32(tpu.nextReg(mem))).dword ); break;
             default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for LB/LW/LDW.");
         }
     }
 
     void executeSB(TPU& tpu, Memory& mem) {
-        const u8 MOD = IMOD(tpu.nextByte(mem));
+        const u8 controlByte = tpu.nextByte(mem);
+        const u8 MOD = IMOD(controlByte);
+        const bool isAbsAddrMode = IADDRMODE(controlByte) == ADDR_MODE_ABS;
         const RegCode regA = tpu.nextReg(mem);
-        const u32 addr = tpu.nextDWord(mem).dword;
         switch (MOD) {
-            case 0: mem.setByte( addr, tpu.readReg8(regA) ); break;
-            case 1: mem.setWord( addr, tpu.readReg16(regA) ); break;
-            case 2: mem.setDWord( addr, tpu.readReg32(regA) ); break;
+            case 0: {
+                const u32 addr = isAbsAddrMode ? tpu.nextDWord(mem).dword : tpu.readRel32(mem);
+                mem.setByte( addr, tpu.readReg8(regA) );
+                break;
+            }
+            case 1: mem.setByte( tpu.readReg32(tpu.nextReg(mem)), tpu.readReg8(regA) ); break;
+            case 2: {
+                const u32 addr = isAbsAddrMode ? tpu.nextDWord(mem).dword : tpu.readRel32(mem);
+                mem.setWord( addr, tpu.readReg16(regA) );
+                break;
+            }
+            case 3: mem.setWord( tpu.readReg32(tpu.nextReg(mem)), tpu.readReg16(regA) ); break;
+            case 4: {
+                const u32 addr = isAbsAddrMode ? tpu.nextDWord(mem).dword : tpu.readRel32(mem);
+                mem.setDWord( addr, tpu.readReg32(regA) );
+                break;
+            }
+            case 5: mem.setDWord( tpu.readReg32(tpu.nextReg(mem)), tpu.readReg32(regA) ); break;
             default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for SB/SW/SDW.");
         }
     }

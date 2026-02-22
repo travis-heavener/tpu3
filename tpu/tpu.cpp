@@ -192,6 +192,13 @@ namespace tpu {
         }
     }
 
+    u32 TPU::readRel32(Memory& mem) {
+        const RegCode reg = this->nextReg(mem);
+        const s32 offset = static_cast<s32>( this->nextDWord(mem).dword );
+        const u32 base = this->readReg32( reg ); // Read register AFTER instruction, in case it's IP
+        return static_cast<u32>( base + static_cast<u32>(offset) );
+    }
+
     void TPU::pushByte(Memory& mem, const u8 b) {
         mem.setByte( ESP.dword, b );
         ++ESP.dword;
