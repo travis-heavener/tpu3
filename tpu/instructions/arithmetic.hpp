@@ -1,9 +1,19 @@
 #ifndef __TPU_INSTRUCTIONS_ARITHMETIC_HPP
 #define __TPU_INSTRUCTIONS_ARITHMETIC_HPP
 
+#include <bit>
+
 #include "../tpu.hpp"
 
 namespace tpu {
+
+    // Cast between signed and unsigned values
+    // Note: C++20 requires Two's Complement so this is safe with TASM
+    template<typename To, typename From>
+    To signed_cast(From v) {
+        static_assert(sizeof(To) == sizeof(From));
+        return std::bit_cast<To>(v);
+    }
 
     // ALUTraits helpers
     template<typename U>
@@ -66,18 +76,18 @@ namespace tpu {
             tpu.setFlag(FLAG_SIGN, (result & T::SIGN_MASK) != 0);
             // Overflow flag irrelevant for unsigned arithmetic
         } else { // Signed
-            const S sa = static_cast<S>(a);
-            const S sb = static_cast<S>(b);
+            const S sa = signed_cast<S,U>(a);
+            const S sb = signed_cast<S,U>(b);
             const SW full = static_cast<SW>(sa) + static_cast<SW>(sb);
             const S result = static_cast<S>(full & T::MAX_MASK);
 
-            T::setReg(tpu, dest, static_cast<U>(result));
+            T::setReg(tpu, dest, signed_cast<U,S>(result));
 
             // Flags
             // Carry flag irrelevant for signed arithmetic
-            tpu.setFlag(FLAG_PARITY, parity<U>(static_cast<U>(result)));
+            tpu.setFlag(FLAG_PARITY, parity<U>(signed_cast<U,S>(result)));
             tpu.setFlag(FLAG_ZERO, result == 0);
-            tpu.setFlag(FLAG_SIGN, (static_cast<U>(result) & T::SIGN_MASK) != 0);
+            tpu.setFlag(FLAG_SIGN, (signed_cast<U,S>(result) & T::SIGN_MASK) != 0);
             tpu.setFlag(FLAG_OVERFLOW, ((sa ^ result) & (sb ^ result) & T::SIGN_MASK) != 0 );
         }
     }
@@ -101,17 +111,17 @@ namespace tpu {
             tpu.setFlag(FLAG_SIGN, (result & T::SIGN_MASK) != 0);
             // Overflow flag irrelevant for unsigned arithmetic
         } else { // Signed
-            const S sa = static_cast<S>(a);
-            const S sb = static_cast<S>(b);
+            const S sa = signed_cast<S,U>(a);
+            const S sb = signed_cast<S,U>(b);
             const S result = static_cast<S>(sa - sb);
 
-            T::setReg(tpu, dest, static_cast<U>(result));
+            T::setReg(tpu, dest, signed_cast<U,S>(result));
 
             // Flags
             // Carry flag irrelevant for signed arithmetic
-            tpu.setFlag(FLAG_PARITY, parity<U>(static_cast<U>(result)));
+            tpu.setFlag(FLAG_PARITY, parity<U>(signed_cast<U,S>(result)));
             tpu.setFlag(FLAG_ZERO, result == 0);
-            tpu.setFlag(FLAG_SIGN, (static_cast<U>(result) & T::SIGN_MASK) != 0);
+            tpu.setFlag(FLAG_SIGN, (signed_cast<U,S>(result) & T::SIGN_MASK) != 0);
             tpu.setFlag(FLAG_OVERFLOW, ((sa ^ sb) & (sa ^ result) & T::SIGN_MASK) != 0 );
         }
     }
@@ -135,15 +145,15 @@ namespace tpu {
             tpu.setFlag(FLAG_SIGN, (result & T::SIGN_MASK) != 0);
             // Overflow flag irrelevant for unsigned arithmetic
         } else { // Signed
-            const S sa = static_cast<S>(a);
-            const S sb = static_cast<S>(b);
+            const S sa = signed_cast<S,U>(a);
+            const S sb = signed_cast<S,U>(b);
             const S result = static_cast<S>(sa - sb);
 
             // Flags
             // Carry flag irrelevant for signed arithmetic
-            tpu.setFlag(FLAG_PARITY, parity<U>(static_cast<U>(result)));
+            tpu.setFlag(FLAG_PARITY, parity<U>(signed_cast<U,S>(result)));
             tpu.setFlag(FLAG_ZERO, result == 0);
-            tpu.setFlag(FLAG_SIGN, (static_cast<U>(result) & T::SIGN_MASK) != 0);
+            tpu.setFlag(FLAG_SIGN, (signed_cast<U,S>(result) & T::SIGN_MASK) != 0);
             tpu.setFlag(FLAG_OVERFLOW, ((sa ^ sb) & (sa ^ result) & T::SIGN_MASK) != 0 );
         }
     }
@@ -174,18 +184,18 @@ namespace tpu {
             tpu.setFlag(FLAG_CARRY, high != 0);
             tpu.setFlag(FLAG_OVERFLOW, high != 0);
         } else { // Signed
-            const SW result = static_cast<SW>( static_cast<S>(a) ) * static_cast<SW>( static_cast<S>(b) );
+            const SW result = static_cast<SW>( signed_cast<S,U>(a) ) * static_cast<SW>( signed_cast<S,U>(b) );
             const S lowSigned  = static_cast<S>(result);
             const S highSigned = static_cast<S>(result >> T::nbits);
 
             // Handle the dest reg by the size of the arguments
             if (T::nbits == 8) {
-                tpu.setReg16(RegCode::AX, static_cast<UW>(result));
+                tpu.setReg16(RegCode::AX, signed_cast<UW,SW>(result));
             } else if (T::nbits == 16) {
-                tpu.setReg32(RegCode::EAX, static_cast<UW>(result));
+                tpu.setReg32(RegCode::EAX, signed_cast<UW,SW>(result));
             } else {
-                tpu.setReg32(RegCode::EAX, static_cast<U>(lowSigned)); // Lower half
-                tpu.setReg32(RegCode::EDX, static_cast<U>(highSigned)); // Upper half
+                tpu.setReg32(RegCode::EAX, signed_cast<U,S>(lowSigned)); // Lower half
+                tpu.setReg32(RegCode::EDX, signed_cast<U,S>(highSigned)); // Upper half
             }
 
             // Flags

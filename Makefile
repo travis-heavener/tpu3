@@ -20,6 +20,7 @@ $(BIN_TPU): $(HDR_TPU) $(SRC_TPU)
 	@g++ \
 		$(SRC_TPU) \
 		-o $(BIN_TPU) \
+		-std=c++20 \
 		-Wall -Wextra -Werror -g
 	@echo "✅ Done."
 
