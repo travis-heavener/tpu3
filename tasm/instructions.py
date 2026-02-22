@@ -64,7 +64,7 @@ class TASMError(Exception):
     line: int = -1
 
     def __init__(self, msg: str):
-        super().__init__(f"TASMError:\n  From: {TASMError.fname}:{TASMError.line}\n    {msg}")
+        super().__init__(f"TASMError: {TASMError.fname}:{TASMError.line}\n    {msg}")
 
 # Returns True if the SIGNED value fits into the number of bits provided
 def does_signed_fit(val: int, bits: int) -> bool:
@@ -369,6 +369,9 @@ def assembleArith2(inst: str, args: tuple[Arg], data: list[int]) -> None:
     # Validate each instruction
     match inst:
         case "cmp" | "scmp": data.append(Inst.CMP)
+        case "and"         : data.append(Inst.AND)
+        case "or"          : data.append(Inst.OR)
+        case "xor"         : data.append(Inst.XOR)
         case "add" | "sadd": data.append(Inst.ADD)
         case "sub" | "ssub": data.append(Inst.SUB)
 

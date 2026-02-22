@@ -143,7 +143,8 @@ def parse_input(fname: str, data: list[int]) -> None:
                         | "sb" | "sw" | "sdw":          assembleLOADSAVE(inst, args, data, labels_to_replace)
                     case "push" | "pushw" | "pushdw":   assemblePUSH(inst, args, data)
                     case "pop" | "popw" | "popdw":      assemblePOP(inst, args, data)
-                    case "cmp" | "scmp":                assembleArith2(inst, args, data)
+                    case "cmp" | "scmp" \
+                        | "and" | "or" | "xor":         assembleArith2(inst, args, data)
                     case "add" | "sadd" \
                         | "sub" | "ssub":               assembleArith2(inst, args, data)
                     case _: raise TASMError(f"Invalid instruction: {inst}")
