@@ -58,6 +58,10 @@ class Label:
         self.fname = TASMError.fname
         self.line = TASMError.line
 
+# How many bits to shift each flag in the control byte by
+_SHIFT_SIGN =      3
+_SHIFT_ADDR_MODE = 4
+
 class TASMError(Exception):
     # Static fields
     fname: str = None
@@ -142,10 +146,10 @@ def assembleJMPLike(inst: str, args: tuple[Arg], data: list[int], labels: list[L
     # Determine control byte
     cbyte = 0
     if args[0].type == ArgType.REL32 or args[0].type == ArgType.LABEL:
-        cbyte  = 0                              # MOD
-        cbyte += 2 if is_inverse_flag else 0    # Differentiate jz vs jnz, for example
-        cbyte |= (AddressMode.RELATIVE) << 4    # Addressing mode
-        data.append(cbyte)                      # Append control byte
+        cbyte  = 0                                          # MOD
+        cbyte += 2 if is_inverse_flag else 0                # Differentiate jz vs jnz, for example
+        cbyte |= (AddressMode.RELATIVE) << _SHIFT_ADDR_MODE # Addressing mode
+        data.append(cbyte)                                  # Append control byte
 
         if args[0].type == ArgType.LABEL:
             data.append(regcode("IP"))  # Append offset register (ALWAYS IP FOR LABELS)
@@ -158,11 +162,11 @@ def assembleJMPLike(inst: str, args: tuple[Arg], data: list[int], labels: list[L
             data.append(args[0].relreg)            # Append offset register
             simm_to_bytes(args[0].value, 32, data) # Append signed offset address
     elif args[0].type == ArgType.ADDR:
-        cbyte  = 0                              # MOD
-        cbyte += 2 if is_inverse_flag else 0    # Differentiate jz vs jnz, for example
-        cbyte |= (AddressMode.ABSOLUTE) << 4    # Addressing mode
-        data.append(cbyte)                      # Append control byte
-        imm_to_bytes(args[0].value, 32, data)   # Append absolute address
+        cbyte  = 0                                          # MOD
+        cbyte += 2 if is_inverse_flag else 0                # Differentiate jz vs jnz, for example
+        cbyte |= (AddressMode.ABSOLUTE) << _SHIFT_ADDR_MODE # Addressing mode
+        data.append(cbyte)                                  # Append control byte
+        imm_to_bytes(args[0].value, 32, data)               # Append absolute address
     elif args[0].type == ArgType.REG32:
         cbyte = 1                               # MOD
         cbyte += 2 if is_inverse_flag else 0    # Differentiate jz vs jnz, for example
@@ -240,12 +244,12 @@ def assembleLOADSAVE(inst: str, args: tuple[Arg], data: list[int], labels: list[
         raise TASMError(f"Invalid argument format to {inst.upper()}")
 
     if args[0].type in (ArgType.REG8, ArgType.REG16, ArgType.REG32) and (args[1].type == ArgType.REL32 or args[1].type == ArgType.LABEL):
-        cbyte  = 0                                      # MOD if Reg8
-        if args[0].type == ArgType.REG16: cbyte = 2     # MOD if Reg16
-        if args[0].type == ArgType.REG32: cbyte = 4     # MOD if Reg32
-        cbyte |= (AddressMode.RELATIVE) << 4            # Addressing mode
-        data.append(cbyte)                              # Append control byte
-        data.append(args[0].value)                      # Append first reg operand
+        cbyte  = 0                                          # MOD if Reg8
+        if args[0].type == ArgType.REG16: cbyte = 2         # MOD if Reg16
+        if args[0].type == ArgType.REG32: cbyte = 4         # MOD if Reg32
+        cbyte |= (AddressMode.RELATIVE) << _SHIFT_ADDR_MODE # Adddressing mode
+        data.append(cbyte)                                  # Append control byte
+        data.append(args[0].value)                          # Append first reg operand
 
         if args[1].type == ArgType.LABEL:
             data.append(regcode("IP"))  # Append offset register (ALWAYS IP FOR LABELS)
@@ -258,11 +262,11 @@ def assembleLOADSAVE(inst: str, args: tuple[Arg], data: list[int], labels: list[
             data.append(args[1].reg)               # Append offset register
             simm_to_bytes(args[1].value, 32, data) # Append signed offset address
     elif args[0].type in (ArgType.REG8, ArgType.REG16, ArgType.REG32) and args[1].type == ArgType.ADDR:
-        cbyte  = 0                                  # MOD if Reg8
-        if args[0].type == ArgType.REG16: cbyte = 2 # MOD if Reg16
-        if args[0].type == ArgType.REG32: cbyte = 4 # MOD if Reg32
-        cbyte |= (AddressMode.ABSOLUTE) << 4        # Addressing mode
-        data.append(cbyte)                          # Append control byte
+        cbyte  = 0                                          # MOD if Reg8
+        if args[0].type == ArgType.REG16: cbyte = 2         # MOD if Reg16
+        if args[0].type == ArgType.REG32: cbyte = 4         # MOD if Reg32
+        cbyte |= (AddressMode.ABSOLUTE) << _SHIFT_ADDR_MODE # Addressing mode
+        data.append(cbyte)                                  # Append control byte
 
         data.append(args[0].value)              # Append first reg operand
         imm_to_bytes(args[1].value, 32, data)   # Append absolute address
@@ -362,6 +366,60 @@ def assemblePOP(inst: str, args: tuple[Arg], data: list[int]) -> None:
 ################################# Bitwise & Arithmetic Methods ##################################
 #################################################################################################
 
+def assembleArith1(inst: str, args: tuple[Arg], data: list[int]) -> None:
+    # Check args length
+    if len(args) != 1: raise TASMError(f"Invalid number of arguments for {inst.upper()}: {len(args)}")
+
+    # Validate each instruction
+    match inst:
+        case "mul" | "smul": data.append(Inst.MUL)
+
+    # Validate argument signedness
+    A = args[0]
+    is_signed = inst in ("smul",)
+
+    if (is_signed and A.type == ArgType.IMM) or (not is_signed and A.type == ArgType.SIMM):
+        raise TASMError(f"Invalid argument format to {inst.upper()}")
+
+    # Determine MOD & args
+    if A.type == ArgType.IMM:
+        val = A.value
+        if is_signed:
+            imm_width = 8 if does_unsigned_fit(val, 8) else 16 if does_unsigned_fit(val, 16) else 32
+        else:
+            imm_width = 8 if does_signed_fit(val, 8) else 16 if does_signed_fit(val, 16) else 32
+
+        # Determine control byte
+        control_byte = 0 if imm_width == 8 else 1 if imm_width == 16 else 2
+        if is_signed: control_byte |= (1 << _SHIFT_SIGN)
+        data.append(control_byte)
+
+        # Immediate
+        if is_signed:
+            simm_to_bytes(val, imm_width, data)
+        else:
+            imm_to_bytes(val, imm_width, data)
+    elif A.type == ArgType.REG8:
+        # Determine control byte
+        control_byte = 3
+        if is_signed: control_byte |= (1 << _SHIFT_SIGN)
+        data.append(control_byte)
+        data.append(A.value)
+    elif A.type == ArgType.REG16:
+        # Determine control byte
+        control_byte = 4
+        if is_signed: control_byte |= (1 << _SHIFT_SIGN)
+        data.append(control_byte)
+        data.append(A.value)
+    elif A.type == ArgType.REG32:
+        # Determine control byte
+        control_byte = 5
+        if is_signed: control_byte |= (1 << _SHIFT_SIGN)
+        data.append(control_byte)
+        data.append(A.value)
+    else:
+        raise TASMError(f"Invalid argument format to {inst.upper()}")
+
 def assembleArith2(inst: str, args: tuple[Arg], data: list[int]) -> None:
     # Check args length
     if len(args) != 2: raise TASMError(f"Invalid number of arguments for {inst.upper()}: {len(args)}")
@@ -386,7 +444,7 @@ def assembleArith2(inst: str, args: tuple[Arg], data: list[int]) -> None:
     if A.type == ArgType.REG8 and B.type in (ArgType.IMM, ArgType.SIMM):
         control_byte = 0
         if B.type == ArgType.SIMM:
-            control_byte |= (1 << 4)
+            control_byte |= (1 << _SHIFT_SIGN)
 
         data.append(control_byte)       # Control Byte (MOD)
         data.append(A.value)            # Regcode
@@ -398,7 +456,7 @@ def assembleArith2(inst: str, args: tuple[Arg], data: list[int]) -> None:
     elif A.type == ArgType.REG16 and B.type in (ArgType.IMM, ArgType.SIMM):
         control_byte = 1
         if B.type == ArgType.SIMM:
-            control_byte |= (1 << 4)
+            control_byte |= (1 << _SHIFT_SIGN)
 
         data.append(control_byte)       # Control Byte (MOD)
         data.append(A.value)            # Regcode
@@ -410,7 +468,7 @@ def assembleArith2(inst: str, args: tuple[Arg], data: list[int]) -> None:
     elif A.type == ArgType.REG32 and B.type in (ArgType.IMM, ArgType.SIMM):
         control_byte = 2
         if B.type == ArgType.SIMM:
-            control_byte |= (1 << 4)
+            control_byte |= (1 << _SHIFT_SIGN)
 
         data.append(control_byte)       # Control Byte (MOD)
         data.append(A.value)            # Regcode
@@ -422,7 +480,7 @@ def assembleArith2(inst: str, args: tuple[Arg], data: list[int]) -> None:
     elif A.type == B.type and A.type in (ArgType.REG8, ArgType.REG16, ArgType.REG32):
         control_byte = 3 if A.type == ArgType.REG8 else 4 if A.type == ArgType.REG16 else 5
         if B.type == ArgType.SIMM:
-            control_byte |= (1 << 4)
+            control_byte |= (1 << _SHIFT_SIGN)
 
         data.append(control_byte)   # Control Byte (MOD)
         data.append(A.value)        # Regcode

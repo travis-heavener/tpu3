@@ -3,7 +3,7 @@ section text
         call fun
         hlt
     fun:
-        mov AX, 0x12
-        mov BX, 0x87
-        not AX
+        mov EAX, 0x12
+        mov EBX, -0x1
+        smul EBX
         ret
