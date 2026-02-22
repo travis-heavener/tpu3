@@ -3,5 +3,8 @@ section text
         call fun
         hlt
     fun:
-        mov AL, 128
+        mov EAX, 0xDEADBEEF
+        sdw EAX, @0x0
+        ldw EBX, @0x0
+        mov EAX, 0
         ret

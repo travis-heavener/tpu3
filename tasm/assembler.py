@@ -135,9 +135,17 @@ def parse_input(fname: str, data: list[int]) -> None:
                     case "sysret":  data.append(Inst.SYSRET)
                     case "call":    assembleJMPLike(inst, args, data, labels_to_replace)
                     case "ret":     data.append(Inst.RET)
-                    case "jmp" | "jz" | "jnz" | "jc" | "jnc" | "jo" | "jno" | "js" | "jns" | "jp" | "jnp":
+                    case "jmp" \
+                        | "jz" | "jnz" \
+                        | "jc" | "jnc" \
+                        | "jo" | "jno" \
+                        | "js" | "jns" \
+                        | "jp" | "jnp":
                         assembleJMPLike(inst, args, data, labels_to_replace)
                     case "mov":     assembleMOV(args, data)
+                    case "lb" | "lw" | "ldw" \
+                        | "sb" | "sw" | "sdw":
+                        assembleLOADSAVE(inst, args, data, labels_to_replace)
                     case _: raise TASMError(f"Invalid instruction: {inst}")
             elif section == "data":
                 # Check for data

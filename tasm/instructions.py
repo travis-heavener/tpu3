@@ -138,7 +138,7 @@ def assembleJMPLike(inst: str, args: tuple[Arg], data: list[int], labels: list[L
         data.append(cbyte)                      # Append control byte
 
         if args[0].type == "Label":
-            data.append(regcode("IP"))  # Append offset register
+            data.append(regcode("IP"))  # Append offset register (ALWAYS IP FOR LABELS)
             replace_pos = len(data)     # Store replacement position for label offset
             data.extend([0, 0, 0, 0])   # Append placeholder offset
 
@@ -209,3 +209,54 @@ def assembleMOV(args: tuple[Arg], data: list[int]) -> None:
         data.append( args[1].value )    # Append second reg
     else:
         raise TASMError("Invalid argument format to MOV")
+
+def assembleLOADSAVE(inst: str, args: tuple[Arg], data: list[int], labels: list[Label]) -> None:
+    # Check args length
+    if len(args) != 2: raise TASMError(f"Invalid number of arguments for LB/LW/LDW or SB/SW/SDW: {len(args)}")
+
+    match inst:
+        case "lb" | "lw" | "ldw": data.append(Inst.LB)
+        case "sb" | "sw" | "sdw": data.append(Inst.SB)
+
+    # Enforce width (e.g. lb only for reg8, lw only for reg16, ...)
+    reg_width = 32 if inst.endswith("dw") else 16 if inst.endswith("w") else 8
+    if not args[0].type.endswith(f"{reg_width}"):
+        raise TASMError("Invalid argument format to LB/LW/LDW or SB/SW/SDW")
+
+    if args[0].type in ("Reg8", "Reg16", "Reg32") and (args[1].type == "Rel32" or args[1].type == "Label"):
+        cbyte  = 0                              # MOD if Reg8
+        if args[0].type == "Reg16": cbyte = 2   # MOD if Reg16
+        if args[0].type == "Reg32": cbyte = 4   # MOD if Reg32
+        cbyte |= (AddressMode.RELATIVE) << 4    # Addressing mode
+        data.append(cbyte)                      # Append control byte
+        data.append(args[0].value)              # Append first reg operand
+
+        if args[1].type == "Label":
+            data.append(regcode("IP"))  # Append offset register (ALWAYS IP FOR LABELS)
+            replace_pos = len(data)     # Store replacement position for label offset
+            data.extend([0, 0, 0, 0])   # Append placeholder offset
+
+            # Store label to be replaced
+            labels.append( Label(name=args[1].value, replace_pos=replace_pos, current_ip=len(data)) )
+        else:
+            data.append(args[1].reg)               # Append offset register
+            simm_to_bytes(args[1].value, 32, data) # Append signed offset address
+    elif args[0].type in ("Reg8", "Reg16", "Reg32") and args[1].type == "Address":
+        cbyte  = 0                              # MOD if Reg8
+        if args[0].type == "Reg16": cbyte = 2   # MOD if Reg16
+        if args[0].type == "Reg32": cbyte = 4   # MOD if Reg32
+        cbyte |= (AddressMode.ABSOLUTE) << 4    # Addressing mode
+        data.append(cbyte)                      # Append control byte
+
+        data.append(args[0].value)              # Append first reg operand
+        imm_to_bytes(args[1].value, 32, data)   # Append absolute address
+    elif args[0].type in ("Reg8", "Reg16", "Reg32") and args[1].type == "Reg32":
+        # Append control byte
+        if args[0].type == "Reg8":  data.append(1)
+        if args[0].type == "Reg16": data.append(3)
+        if args[0].type == "Reg32": data.append(5)
+
+        data.append(args[0].value)  # Append first reg operand
+        data.append(args[1].value)  # Append second reg operand
+    else:
+        raise TASMError("Invalid argument format to LB/LW/LDW or SB/SW/SDW")
