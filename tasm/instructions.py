@@ -120,9 +120,9 @@ def regcode(reg: str) -> int:
         "IP", "ESP", "SP", "EBP", "BP", "ESI", "SI", "EDI", "DI", "RP"
     ].index(reg)
 
-#########################################
-##### Instruction assembler methods #####
-#########################################
+#################################################################################################
+################################# Instruction Assembler Methods #################################
+#################################################################################################
 
 def assembleJMPLike(inst: str, args: tuple[Arg], data: list[int], labels: list[Label]) -> None:
     # Check args length
@@ -170,6 +170,10 @@ def assembleJMPLike(inst: str, args: tuple[Arg], data: list[int], labels: list[L
         data.append(args[0].value)              # Append regcode
     else:
         raise TASMError(f"Invalid argument format to {inst.upper()}")
+
+#################################################################################################
+################################### Register & Memory Methods ###################################
+#################################################################################################
 
 def assembleMOV(args: tuple[Arg], data: list[int]) -> None:
     # Check args length
@@ -351,5 +355,74 @@ def assemblePOP(inst: str, args: tuple[Arg], data: list[int]) -> None:
     elif args[0].type == ArgType.REG32:
         data.append(4)              # MOD
         data.append(args[0].value)  # Add regcode
+    else:
+        raise TASMError(f"Invalid argument format to {inst.upper()}")
+
+#################################################################################################
+################################# Bitwise & Arithmetic Methods ##################################
+#################################################################################################
+
+def assembleArith2(inst: str, args: tuple[Arg], data: list[int]) -> None:
+    # Check args length
+    if len(args) != 2: raise TASMError(f"Invalid number of arguments for {inst.upper()}: {len(args)}")
+
+    # Validate each instruction
+    match inst:
+        case "cmp" | "scmp": data.append(Inst.CMP)
+        case "add" | "sadd": data.append(Inst.ADD)
+        case "sub" | "ssub": data.append(Inst.SUB)
+
+    # Validate argument signedness
+    A, B = args
+    is_signed = inst in ("scmp", "sadd", "ssub")
+
+    if (is_signed and B.type == ArgType.IMM) or (not is_signed and B.type == ArgType.SIMM):
+        raise TASMError(f"Invalid argument format to {inst.upper()}")
+
+    # Determine MOD & args
+    if A.type == ArgType.REG8 and B.type in (ArgType.IMM, ArgType.SIMM):
+        control_byte = 0
+        if B.type == ArgType.SIMM:
+            control_byte |= (1 << 4)
+
+        data.append(control_byte)       # Control Byte (MOD)
+        data.append(A.value)            # Regcode
+
+        if is_signed: # Immediate
+            simm_to_bytes(B.value, 8, data)
+        else:
+            imm_to_bytes(B.value, 8, data)
+    elif A.type == ArgType.REG16 and B.type in (ArgType.IMM, ArgType.SIMM):
+        control_byte = 1
+        if B.type == ArgType.SIMM:
+            control_byte |= (1 << 4)
+
+        data.append(control_byte)       # Control Byte (MOD)
+        data.append(A.value)            # Regcode
+
+        if is_signed: # Immediate
+            simm_to_bytes(B.value, 16, data)
+        else:
+            imm_to_bytes(B.value, 16, data)
+    elif A.type == ArgType.REG32 and B.type in (ArgType.IMM, ArgType.SIMM):
+        control_byte = 2
+        if B.type == ArgType.SIMM:
+            control_byte |= (1 << 4)
+
+        data.append(control_byte)       # Control Byte (MOD)
+        data.append(A.value)            # Regcode
+
+        if is_signed: # Immediate
+            simm_to_bytes(B.value, 32, data)
+        else:
+            imm_to_bytes(B.value, 32, data)
+    elif A.type == B.type and A.type in (ArgType.REG8, ArgType.REG16, ArgType.REG32):
+        control_byte = 3 if A.type == ArgType.REG8 else 4 if A.type == ArgType.REG16 else 5
+        if B.type == ArgType.SIMM:
+            control_byte |= (1 << 4)
+
+        data.append(control_byte)   # Control Byte (MOD)
+        data.append(A.value)        # Regcode
+        data.append(B.value)        # Regcode
     else:
         raise TASMError(f"Invalid argument format to {inst.upper()}")

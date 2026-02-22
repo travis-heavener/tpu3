@@ -3,11 +3,7 @@ section text
         call fun
         hlt
     fun:
-        mov EAX, 0xDEADBEEF
-        sdw EAX, @0x0
-        ldw EBX, @0x0
-        mov EAX, 0
-        pushw 0x1234
-        pop AL
-        mov DH, AL
+        mov AX, 0x12
+        mov BX, 0x88
+        ssub AX, BX
         ret

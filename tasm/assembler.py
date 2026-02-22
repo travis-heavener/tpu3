@@ -129,27 +129,23 @@ def parse_input(fname: str, data: list[int]) -> None:
                 args: list[Arg] = assemble_args( parts )
 
                 match inst:
-                    case "nop":     data.append(Inst.NOP)
-                    case "hlt":     data.append(Inst.HLT)
-                    case "syscall": data.append(Inst.SYSCALL)
-                    case "sysret":  data.append(Inst.SYSRET)
-                    case "call":    assembleJMPLike(inst, args, data, labels_to_replace)
-                    case "ret":     data.append(Inst.RET)
-                    case "jmp" \
-                        | "jz" | "jnz" \
-                        | "jc" | "jnc" \
-                        | "jo" | "jno" \
-                        | "js" | "jns" \
-                        | "jp" | "jnp":
-                        assembleJMPLike(inst, args, data, labels_to_replace)
-                    case "mov":     assembleMOV(args, data)
+                    case "nop":                         data.append(Inst.NOP)
+                    case "hlt":                         data.append(Inst.HLT)
+                    case "syscall":                     data.append(Inst.SYSCALL)
+                    case "sysret":                      data.append(Inst.SYSRET)
+                    case "call":                        assembleJMPLike(inst, args, data, labels_to_replace)
+                    case "ret":                         data.append(Inst.RET)
+                    case "jmp" | "jz" | "jnz" \
+                        | "jc" | "jnc" | "jo" | "jno" \
+                        | "js" | "jns" | "jp" | "jnp":  assembleJMPLike(inst, args, data, labels_to_replace)
+                    case "mov":                         assembleMOV(args, data)
                     case "lb" | "lw" | "ldw" \
-                        | "sb" | "sw" | "sdw":
-                        assembleLOADSAVE(inst, args, data, labels_to_replace)
-                    case "push" | "pushw" | "pushdw":
-                        assemblePUSH(inst, args, data)
-                    case "pop" | "popw" | "popdw":
-                        assemblePOP(inst, args, data)
+                        | "sb" | "sw" | "sdw":          assembleLOADSAVE(inst, args, data, labels_to_replace)
+                    case "push" | "pushw" | "pushdw":   assemblePUSH(inst, args, data)
+                    case "pop" | "popw" | "popdw":      assemblePOP(inst, args, data)
+                    case "cmp" | "scmp":                assembleArith2(inst, args, data)
+                    case "add" | "sadd" \
+                        | "sub" | "ssub":               assembleArith2(inst, args, data)
                     case _: raise TASMError(f"Invalid instruction: {inst}")
             elif section == "data":
                 # Check for data
