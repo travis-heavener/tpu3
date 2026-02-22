@@ -23,6 +23,7 @@ if __name__ == "__main__":
         parse_input(argv[1], data)
     except Exception as e:
         print(e)
+        exit(1)
     print("DATA:", data)
 
     if len(data) == 7: # First jmp instruction is 7 bytes
