@@ -7,4 +7,7 @@ section text
         sdw EAX, @0x0
         ldw EBX, @0x0
         mov EAX, 0
+        pushw 0x1234
+        pop AL
+        mov DH, AL
         ret

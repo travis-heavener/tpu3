@@ -34,11 +34,21 @@ class AddressMode:
     RELATIVE = 0
     ABSOLUTE = 1
 
+class ArgType:
+    IMM =   0
+    SIMM =  1
+    REG8 =  2
+    REG16 = 3
+    REG32 = 4
+    ADDR =  5
+    REL32 = 6
+    LABEL = 7
+
 class Arg:
-    def __init__(self, type: str, value: any, reg: int=None):
-        self.type = type    # The argument's type
-        self.value = value  # The argument's value
-        self.reg = reg      # The offest register for rel32
+    def __init__(self, type: ArgType, value: any, relreg: int=None):
+        self.type = type     # The argument's type
+        self.value = value   # The argument's value
+        self.relreg = relreg # The offest register for rel32
 
 class Label:
     def __init__(self, name: str, replace_pos: int, current_ip: int):
@@ -116,7 +126,7 @@ def regcode(reg: str) -> int:
 
 def assembleJMPLike(inst: str, args: tuple[Arg], data: list[int], labels: list[Label]) -> None:
     # Check args length
-    if len(args) != 1: raise TASMError(f"Invalid number of arguments for CALL or JMP-like: {len(args)}")
+    if len(args) != 1: raise TASMError(f"Invalid number of arguments for {inst.upper()}: {len(args)}")
 
     match inst:
         case "call":        data.append(Inst.CALL)
@@ -131,13 +141,13 @@ def assembleJMPLike(inst: str, args: tuple[Arg], data: list[int], labels: list[L
 
     # Determine control byte
     cbyte = 0
-    if args[0].type == "Rel32" or args[0].type == "Label":
+    if args[0].type == ArgType.REL32 or args[0].type == ArgType.LABEL:
         cbyte  = 0                              # MOD
         cbyte += 2 if is_inverse_flag else 0    # Differentiate jz vs jnz, for example
         cbyte |= (AddressMode.RELATIVE) << 4    # Addressing mode
         data.append(cbyte)                      # Append control byte
 
-        if args[0].type == "Label":
+        if args[0].type == ArgType.LABEL:
             data.append(regcode("IP"))  # Append offset register (ALWAYS IP FOR LABELS)
             replace_pos = len(data)     # Store replacement position for label offset
             data.extend([0, 0, 0, 0])   # Append placeholder offset
@@ -145,21 +155,21 @@ def assembleJMPLike(inst: str, args: tuple[Arg], data: list[int], labels: list[L
             # Store label to be replaced
             labels.append( Label(name=args[0].value, replace_pos=replace_pos, current_ip=len(data)) )
         else:
-            data.append(args[0].reg)               # Append offset register
+            data.append(args[0].relreg)            # Append offset register
             simm_to_bytes(args[0].value, 32, data) # Append signed offset address
-    elif args[0].type == "Address":
+    elif args[0].type == ArgType.ADDR:
         cbyte  = 0                              # MOD
         cbyte += 2 if is_inverse_flag else 0    # Differentiate jz vs jnz, for example
         cbyte |= (AddressMode.ABSOLUTE) << 4    # Addressing mode
         data.append(cbyte)                      # Append control byte
         imm_to_bytes(args[0].value, 32, data)   # Append absolute address
-    elif args[0].type == "Reg32":
+    elif args[0].type == ArgType.REG32:
         cbyte = 1                               # MOD
         cbyte += 2 if is_inverse_flag else 0    # Differentiate jz vs jnz, for example
         data.append(cbyte)                      # Append control byte
         data.append(args[0].value)              # Append regcode
     else:
-        raise TASMError("Invalid argument format to CALL or JMP-like")
+        raise TASMError(f"Invalid argument format to {inst.upper()}")
 
 def assembleMOV(args: tuple[Arg], data: list[int]) -> None:
     # Check args length
@@ -168,42 +178,42 @@ def assembleMOV(args: tuple[Arg], data: list[int]) -> None:
     data.append(Inst.MOV)
 
     # Determine MOD bits
-    if args[0].type == "Reg8" and (args[1].type == "Immediate" or args[1].type == "SignedImmediate"):
+    if args[0].type == ArgType.REG8 and (args[1].type == ArgType.IMM or args[1].type == ArgType.SIMM):
         data.append( 0 )                # Append MOD
         data.append( args[0].value )    # Append first reg
 
         # Add immediate
-        if args[1].type == "SignedImmediate":
+        if args[1].type == ArgType.SIMM:
             simm_to_bytes( args[1].value, 8, data )
         else:
             imm_to_bytes( args[1].value, 8, data )
-    elif args[0].type == "Reg16" and (args[1].type == "Immediate" or args[1].type == "SignedImmediate"):
+    elif args[0].type == ArgType.REG16 and (args[1].type == ArgType.IMM or args[1].type == ArgType.SIMM):
         data.append( 1 )                # Append MOD
         data.append( args[0].value )    # Append first reg
 
         # Add immediate
-        if args[1].type == "SignedImmediate":
+        if args[1].type == ArgType.SIMM:
             simm_to_bytes( args[1].value, 16, data )
         else:
             imm_to_bytes( args[1].value, 16, data )
-    elif args[0].type == "Reg32" and (args[1].type == "Immediate" or args[1].type == "SignedImmediate"):
+    elif args[0].type == ArgType.REG32 and (args[1].type == ArgType.IMM or args[1].type == ArgType.SIMM):
         data.append( 2 )                # Append MOD
         data.append( args[0].value )    # Append first reg
 
         # Add immediate
-        if args[1].type == "SignedImmediate":
+        if args[1].type == ArgType.SIMM:
             simm_to_bytes( args[1].value, 32, data )
         else:
             imm_to_bytes( args[1].value, 32, data )
-    elif args[0].type == "Reg8" and args[1].type == "Reg8":
+    elif args[0].type == ArgType.REG8 and args[1].type == ArgType.REG8:
         data.append( 3 )                # Append MOD
         data.append( args[0].value )    # Append first reg
         data.append( args[1].value )    # Append second reg
-    elif args[0].type == "Reg16" and args[1].type == "Reg16":
+    elif args[0].type == ArgType.REG16 and args[1].type == ArgType.REG16:
         data.append( 4 )                # Append MOD
         data.append( args[0].value )    # Append first reg
         data.append( args[1].value )    # Append second reg
-    elif args[0].type == "Reg32" and args[1].type == "Reg32":
+    elif args[0].type == ArgType.REG32 and args[1].type == ArgType.REG32:
         data.append( 5 )                # Append MOD
         data.append( args[0].value )    # Append first reg
         data.append( args[1].value )    # Append second reg
@@ -212,7 +222,7 @@ def assembleMOV(args: tuple[Arg], data: list[int]) -> None:
 
 def assembleLOADSAVE(inst: str, args: tuple[Arg], data: list[int], labels: list[Label]) -> None:
     # Check args length
-    if len(args) != 2: raise TASMError(f"Invalid number of arguments for LB/LW/LDW or SB/SW/SDW: {len(args)}")
+    if len(args) != 2: raise TASMError(f"Invalid number of arguments for {inst.upper()}: {len(args)}")
 
     match inst:
         case "lb" | "lw" | "ldw": data.append(Inst.LB)
@@ -220,18 +230,20 @@ def assembleLOADSAVE(inst: str, args: tuple[Arg], data: list[int], labels: list[
 
     # Enforce width (e.g. lb only for reg8, lw only for reg16, ...)
     reg_width = 32 if inst.endswith("dw") else 16 if inst.endswith("w") else 8
-    if not args[0].type.endswith(f"{reg_width}"):
-        raise TASMError("Invalid argument format to LB/LW/LDW or SB/SW/SDW")
+    if (args[0].type == ArgType.REG8  and reg_width != 8)  or \
+       (args[0].type == ArgType.REG16 and reg_width != 16) or \
+       (args[0].type == ArgType.REG32 and reg_width != 32):
+        raise TASMError(f"Invalid argument format to {inst.upper()}")
 
-    if args[0].type in ("Reg8", "Reg16", "Reg32") and (args[1].type == "Rel32" or args[1].type == "Label"):
-        cbyte  = 0                              # MOD if Reg8
-        if args[0].type == "Reg16": cbyte = 2   # MOD if Reg16
-        if args[0].type == "Reg32": cbyte = 4   # MOD if Reg32
-        cbyte |= (AddressMode.RELATIVE) << 4    # Addressing mode
-        data.append(cbyte)                      # Append control byte
-        data.append(args[0].value)              # Append first reg operand
+    if args[0].type in (ArgType.REG8, ArgType.REG16, ArgType.REG32) and (args[1].type == ArgType.REL32 or args[1].type == ArgType.LABEL):
+        cbyte  = 0                                      # MOD if Reg8
+        if args[0].type == ArgType.REG16: cbyte = 2     # MOD if Reg16
+        if args[0].type == ArgType.REG32: cbyte = 4     # MOD if Reg32
+        cbyte |= (AddressMode.RELATIVE) << 4            # Addressing mode
+        data.append(cbyte)                              # Append control byte
+        data.append(args[0].value)                      # Append first reg operand
 
-        if args[1].type == "Label":
+        if args[1].type == ArgType.LABEL:
             data.append(regcode("IP"))  # Append offset register (ALWAYS IP FOR LABELS)
             replace_pos = len(data)     # Store replacement position for label offset
             data.extend([0, 0, 0, 0])   # Append placeholder offset
@@ -241,22 +253,103 @@ def assembleLOADSAVE(inst: str, args: tuple[Arg], data: list[int], labels: list[
         else:
             data.append(args[1].reg)               # Append offset register
             simm_to_bytes(args[1].value, 32, data) # Append signed offset address
-    elif args[0].type in ("Reg8", "Reg16", "Reg32") and args[1].type == "Address":
-        cbyte  = 0                              # MOD if Reg8
-        if args[0].type == "Reg16": cbyte = 2   # MOD if Reg16
-        if args[0].type == "Reg32": cbyte = 4   # MOD if Reg32
-        cbyte |= (AddressMode.ABSOLUTE) << 4    # Addressing mode
-        data.append(cbyte)                      # Append control byte
+    elif args[0].type in (ArgType.REG8, ArgType.REG16, ArgType.REG32) and args[1].type == ArgType.ADDR:
+        cbyte  = 0                                  # MOD if Reg8
+        if args[0].type == ArgType.REG16: cbyte = 2 # MOD if Reg16
+        if args[0].type == ArgType.REG32: cbyte = 4 # MOD if Reg32
+        cbyte |= (AddressMode.ABSOLUTE) << 4        # Addressing mode
+        data.append(cbyte)                          # Append control byte
 
         data.append(args[0].value)              # Append first reg operand
         imm_to_bytes(args[1].value, 32, data)   # Append absolute address
-    elif args[0].type in ("Reg8", "Reg16", "Reg32") and args[1].type == "Reg32":
+    elif args[0].type in (ArgType.REG8, ArgType.REG16, ArgType.REG32) and args[1].type == ArgType.REG32:
         # Append control byte
-        if args[0].type == "Reg8":  data.append(1)
-        if args[0].type == "Reg16": data.append(3)
-        if args[0].type == "Reg32": data.append(5)
+        if args[0].type == ArgType.REG8:  data.append(1)
+        if args[0].type == ArgType.REG16: data.append(3)
+        if args[0].type == ArgType.REG32: data.append(5)
 
         data.append(args[0].value)  # Append first reg operand
         data.append(args[1].value)  # Append second reg operand
     else:
-        raise TASMError("Invalid argument format to LB/LW/LDW or SB/SW/SDW")
+        raise TASMError(f"Invalid argument format to {inst.upper()}")
+
+def assemblePUSH(inst: str, args: tuple[Arg], data: list[int]) -> None:
+    # Check args length
+    if len(args) != 1: raise TASMError(f"Invalid number of arguments for {inst.upper()}: {len(args)}")
+
+    data.append(Inst.PUSH)
+
+    # Enforce width (e.g. lb only for reg8, lw only for reg16, ...)
+    inst_width = 32 if inst.endswith("dw") else 16 if inst.endswith("w") else 8
+    if (args[0].type == ArgType.REG8  and inst_width != 8)  or \
+       (args[0].type == ArgType.REG16 and inst_width != 16) or \
+       (args[0].type == ArgType.REG32 and inst_width != 32):
+        raise TASMError(f"Invalid argument format to {inst.upper()}")
+
+    if args[0].type == ArgType.REG8:
+        data.append(0)              # MOD
+        data.append(args[0].value)  # Add regcode
+    elif args[0].type == ArgType.REG16:
+        data.append(2)              # MOD
+        data.append(args[0].value)  # Add regcode
+    elif args[0].type == ArgType.REG32:
+        data.append(4)              # MOD
+        data.append(args[0].value)  # Add regcode
+    elif args[0].type == ArgType.IMM:
+        val = args[0].value
+        imm_width = 8 if does_unsigned_fit(val, 8) else 16 if does_unsigned_fit(val, 16) else 32
+
+        # Validate instruction width vs argument width
+        if inst_width != imm_width:
+            raise TASMError(f"Invalid argument format to {inst.upper()}")
+
+        # MOD
+        data.append(1 if imm_width == 8 else 3 if imm_width == 16 else 5)
+        imm_to_bytes(val, imm_width, data) # Add immediate
+    elif args[0].type == ArgType.SIMM:
+        val = args[0].value
+        imm_width = 8 if does_signed_fit(val, 8) else 16 if does_signed_fit(val, 16) else 32
+
+        # Validate instruction width vs argument width
+        if inst_width != imm_width:
+            raise TASMError(f"Invalid argument format to {inst.upper()}")
+
+        # MOD
+        data.append(1 if imm_width == 8 else 3 if imm_width == 16 else 5)
+        simm_to_bytes(val, imm_width, data) # Add immediate
+    else:
+        raise TASMError(f"Invalid argument format to {inst.upper()}")
+
+def assemblePOP(inst: str, args: tuple[Arg], data: list[int]) -> None:
+    # Check args length
+    if len(args) > 1: raise TASMError(f"Invalid number of arguments for {inst.upper()}: {len(args)}")
+
+    data.append(Inst.POP)
+
+    # Check instruction width
+    inst_width = 32 if inst.endswith("dw") else 16 if inst.endswith("w") else 8
+
+    # Check number of args
+    if len(args) == 0:
+        data.append(1 if inst_width == 8 else 3 if inst_width == 16 else 5)
+        return
+
+    # OTHERWISE, use the argument provided
+
+    # Enforce width (e.g. lb only for reg8, lw only for reg16, ...)
+    if (args[0].type == ArgType.REG8  and inst_width != 8)  or \
+       (args[0].type == ArgType.REG16 and inst_width != 16) or \
+       (args[0].type == ArgType.REG32 and inst_width != 32):
+        raise TASMError(f"Invalid argument format to {inst.upper()}")
+
+    if args[0].type == ArgType.REG8:
+        data.append(0)              # MOD
+        data.append(args[0].value)  # Add regcode
+    elif args[0].type == ArgType.REG16:
+        data.append(2)              # MOD
+        data.append(args[0].value)  # Add regcode
+    elif args[0].type == ArgType.REG32:
+        data.append(4)              # MOD
+        data.append(args[0].value)  # Add regcode
+    else:
+        raise TASMError(f"Invalid argument format to {inst.upper()}")

@@ -29,35 +29,35 @@ def assemble_args(parts: list[str]) -> tuple[Arg]:
 
     for part in parts:
         if reg := re.match(r"^0x[0-9a-fA-F]+$", part): # Hex literals
-            args.append( Arg( type="Immediate", value=int(reg.group()[2:], 16) ) )
+            args.append( Arg( type=ArgType.IMM, value=int(reg.group()[2:], 16) ) )
         elif reg := re.match(r"^\d+$", part): # Decimal literals
-            args.append( Arg( type="Immediate", value=int(reg.group()) ) )
+            args.append( Arg( type=ArgType.IMM, value=int(reg.group()) ) )
 
         elif reg := re.match(r"^[\-\+]0x[0-9a-fA-F]+$", part): # SIGNED Hex literals
             sign = -1 if reg.group()[0] == "-" else 1
-            args.append( Arg( type="SignedImmediate", value=(sign * int(reg.group()[3:], 16)) ) )
+            args.append( Arg( type=ArgType.SIMM, value=(sign * int(reg.group()[3:], 16)) ) )
         elif reg := re.match(r"^[\-\+]\d+$", part): # SIGNED Decimal literals
             sign = -1 if reg.group()[0] == "-" else 1
-            args.append( Arg( type="SignedImmediate", value=(sign * int(reg.group()[1:])) ) )
+            args.append( Arg( type=ArgType.SIMM, value=(sign * int(reg.group()[1:])) ) )
 
         elif reg := re.match(r"^AL|AH|BL|BH|CL|CH|DL|DH$", part): # reg8
-            args.append( Arg( type="Reg8", value=regcode(reg.group()) ) )
+            args.append( Arg( type=ArgType.REG8, value=regcode(reg.group()) ) )
         elif reg := re.match(r"^AX|BX|CX|DX|SP|BP|SI|DI$", part): # reg16
-            args.append( Arg( type="Reg16", value=regcode(reg.group()) ) )
+            args.append( Arg( type=ArgType.REG16, value=regcode(reg.group()) ) )
         elif reg := re.match(r"^EAX|EBX|ECX|EDX|ESP|EBP|ESI|EDI|RP$", part): # reg32
-            args.append( Arg( type="Reg32", value=regcode(reg.group()) ) )
+            args.append( Arg( type=ArgType.REG32, value=regcode(reg.group()) ) )
 
         elif reg := re.match(r"^[_a-zA-Z][_a-zA-Z0-9]*$", part): # Labels
-            args.append( Arg( type="Label", value=reg.group() ) )
+            args.append( Arg( type=ArgType.LABEL, value=reg.group() ) )
         elif reg := re.match(r"^@0x[0-9a-fA-F]+$", part): # Hex Addresses
-            args.append( Arg( type="Address", value=int(reg.group()[3:], 16) ) )
+            args.append( Arg( type=ArgType.ADDR, value=int(reg.group()[3:], 16) ) )
         elif reg := re.match(r"^\[\s*(EAX|EBX|ECX|EDX|ESP|EBP|ESI|EDI|RP|IP)\s*([\-\+])\s*(0x[0-9a-fA-F]+|\d+)\s*\]$", part): # rel32
             sign = -1 if reg.group(2) == "-" else 1
             offset_base = 16 if reg.group(3).startswith("0x") else 10
             args.append(Arg(
-                type="Rel32",
+                type=ArgType.REL32,
                 value=( sign * int(reg.group(3)[(2 if offset_base == 16 else 0):], offset_base) ),
-                reg=regcode(reg.group(1))
+                relreg=regcode(reg.group(1))
             ))
         else:
             raise TASMError(f"Invalid argument: {part}")
@@ -146,6 +146,10 @@ def parse_input(fname: str, data: list[int]) -> None:
                     case "lb" | "lw" | "ldw" \
                         | "sb" | "sw" | "sdw":
                         assembleLOADSAVE(inst, args, data, labels_to_replace)
+                    case "push" | "pushw" | "pushdw":
+                        assemblePUSH(inst, args, data)
+                    case "pop" | "popw" | "popdw":
+                        assemblePOP(inst, args, data)
                     case _: raise TASMError(f"Invalid instruction: {inst}")
             elif section == "data":
                 # Check for data
