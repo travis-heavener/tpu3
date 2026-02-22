@@ -429,3 +429,21 @@ def assembleArith2(inst: str, args: tuple[Arg], data: list[int]) -> None:
         data.append(B.value)        # Regcode
     else:
         raise TASMError(f"Invalid argument format to {inst.upper()}")
+
+def assembleNOT(args: tuple[Arg], data: list[int]) -> None:
+    # Check args length
+    if len(args) != 1: raise TASMError(f"Invalid number of arguments for NOT: {len(args)}")
+
+    data.append(Inst.NOT)
+
+    if args[0].type == ArgType.REG8:
+        data.append(0)              # MOD
+        data.append(args[0].value)  # Regcode
+    elif args[0].type == ArgType.REG16:
+        data.append(1)              # MOD
+        data.append(args[0].value)  # Regcode
+    elif args[0].type == ArgType.REG32:
+        data.append(2)              # MOD
+        data.append(args[0].value)  # Regcode
+    else:
+        raise TASMError(f"Invalid argument format to NOT")

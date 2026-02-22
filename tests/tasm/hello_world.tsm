@@ -5,5 +5,5 @@ section text
     fun:
         mov AX, 0x12
         mov BX, 0x87
-        or AX, 0x87
+        not AX
         ret
