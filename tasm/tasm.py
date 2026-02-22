@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from sys import argv
 
-from parser import parse_input
+from assembler import parse_input
 
 if __name__ == "__main__":
     # Begin parsing the input file
@@ -25,18 +25,14 @@ if __name__ == "__main__":
         print(e)
     print("DATA:", data)
 
+    if len(data) == 7: # First jmp instruction is 7 bytes
+        print("ERROR: Missing \"text\" section, nothing to build.")
+        exit(1)
+
     # Open file for writing
     with open(argv[2], "wb") as f:
-        # # Zero out the file
-        # f.seek(SIZE - 1)
-        # f.write(b"\0")
-
-        # # Write instruction start address
-        # f.seek(0)
-        # f.write(b"\xEF\xBE\x00\x00")
-
-        # # Write instruction
-        # f.seek(0x0000BEEF) # <-- start of instructions
-        pass
+        # Write instructions (text segment)
+        for byte in data:
+            f.write(byte.to_bytes(1, "little", signed=False))
 
     print("Successfully built TPU image at:", argv[1])

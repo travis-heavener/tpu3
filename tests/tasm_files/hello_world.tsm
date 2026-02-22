@@ -1,8 +1,7 @@
 section text
-    main:
-        ; Load something to memory
-        ; popw DX
-        hlt 0x12
-        jmp [ IP - 0x1F4 ]
-        ; popw AX
+    fun:
+        mov AX, 12
+        ret
+    _start:
+        call fun
         hlt

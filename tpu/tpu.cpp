@@ -23,7 +23,7 @@ namespace tpu {
     // Starts the clock
     void TPU::start(Memory& mem, std::atomic<bool>& isExiting) {
         // Move IP to first instruction
-        this->IP.dword = mem.readDWord(0).dword;
+        this->IP = { IMAGE_START_ADDR };
 
         // Begin execution
         this->execute(mem, isExiting);

@@ -25,4 +25,3 @@ All memory after these first 8 bytes and before the first instruction bytes are 
 The call stack is positioned immediately after the program's instructions and takes up 8 KiB, which is followed by the 16 KiB stack.
 
 Everything after this is free memory that the program can use as it pleases.
-

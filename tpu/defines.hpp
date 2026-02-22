@@ -37,6 +37,12 @@
 /**************************************/
 // See docs/TPU.md for more information on the TPU's memory layout
 
+// The address of the start of the kernel image
+#define IMAGE_START_ADDR    0x0001'0500
+
+// The maximum size of a TPU image
+#define MAX_IMAGE_SIZE      0x0002'0000
+
 // The address of the first syscall in the syscall table
 #define SYSCALL_TABLE_FIRST 0x0000'0100
 

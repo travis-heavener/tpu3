@@ -38,7 +38,7 @@ void initSigHandler() {
 // Loads a TPU binary image from a file to memory
 void loadImageToMemory(tpu::Memory& memory, std::ifstream& handle) {
     // Read entire file to memory (guaranteed to be smaller than memory)
-    u32 memPtr = 0;
+    u32 memPtr = IMAGE_START_ADDR;
     const u32 stepSize = 1024;
     do {
         handle.read( reinterpret_cast<char*>(memory.data() + memPtr), stepSize );
@@ -61,8 +61,8 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    if (std::filesystem::file_size(argv[1]) > MAX_MEMORY_ALLOC) {
-        CERR << "TPU image exceeds memory: " << argv[1] << std::endl;
+    if (std::filesystem::file_size(argv[1]) > MAX_IMAGE_SIZE) {
+        CERR << "TPU image exceeds maximum allowed size: " << argv[1] << std::endl;
         return EXIT_FAILURE;
     }
 
