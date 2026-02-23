@@ -7,6 +7,7 @@ section kernel-data
 section kernel
     ; Cleans up and stops the TPU
     syscall_22:
+        mov EAX, 0 ; Indicate success
         hlt
 
     _kernel_start:
@@ -20,19 +21,55 @@ section kernel
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 section data
-    strz WELCOME_MSG "Welcome to TPUOS\n"
+    strz USERNAME_PROMPT "Enter username: "
+
+    strz WELCOME_MSG "Welcome to TPUOS, "
+    strz NEWLINE "\n"
+
+    ; Create space for username
+    u32 usernameLen 64
+    space username 64
 
 section text
     toast:
         pushdw RP       ; Save RP
 
-        ; Calculate welcome message length
-        mov ESI, WELCOME_MSG
-        call strlen
+        ; Prompt user for name
+        mov ESI, USERNAME_PROMPT    ; Load welcome message to ESI
+        call strlen                 ; Calculate welcome message length
+        mov ECX, EAX                ; Save strlen(WELCOME_MSG)
+        mov EBX, 1                  ; fd = stdout
+        mov EAX, 1                  ; Write() syscall
+        syscall
+
+        ; Read username
+        mov EAX, 2              ; Read() syscall
+        mov EBX, 0              ; fd = stdin
+        mov ECX, usernameLen    ; Specify length of buffer
+        mov EDI, username       ; Specify where to store the string
+        syscall
+        pushdw EAX              ; Save username length
 
         ; Write welcome message
-        mov EBX, EAX    ; Save strlen(WELCOME_MSG)
-        mov EAX, 1      ; Write() syscall
+        mov ESI, WELCOME_MSG    ; Load welcome message to ESI
+        call strlen             ; Calculate welcome message length
+        mov ECX, EAX            ; Save strlen(WELCOME_MSG)
+        mov EBX, 1              ; fd = stdout
+        mov EAX, 1              ; Write() syscall
+        syscall
+
+        ; Write username
+        mov ESI, username   ; Load username to ESI
+        popdw ECX           ; Restore username length
+        mov EBX, 1          ; fd = stdout
+        mov EAX, 1          ; Write() syscall
+        syscall
+
+        ; Write newline
+        mov ESI, NEWLINE    ; Load newline to ESI
+        mov EAX, 1          ; Write() syscall
+        mov EBX, 1          ; fd = stdout
+        mov ECX, 1          ; Length = 1
         syscall
 
         popdw RP        ; Restore RP
@@ -41,14 +78,6 @@ section text
     _start:
         ; Toast the user
         call toast
-
-        ; Wait 3 seconds
-        mov EAX, 3
-        call sleep
-
-        ; Put seconds since Epoch in EBX
-        mov EAX, 9      ; Time() syscall
-        syscall
 
         ; Kill the TPU
         mov EAX, 22

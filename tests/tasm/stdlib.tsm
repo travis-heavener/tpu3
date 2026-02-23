@@ -13,6 +13,7 @@ section text
         add EDX, EBX            ; Store wakeup time in EDX
 
         __sleep_loop:
+            mov EAX, 9          ; Time() is syscall 9
             syscall             ; Time() syscall
             cmp EDX, EBX        ; Loop condition
             jc __sleep_end      ; End if carry set (EBX > EDX)

@@ -122,7 +122,7 @@ def assemble_file(fname: str) -> None:
                 continue
 
             # Check for data segment type
-            if reg := re.match(r"^(u8|u16|u32|s8|s16|s32|str|strz)\s+([_a-zA-Z][_a-zA-Z0-9]*)\s+(.+)$", line):
+            if reg := re.match(r"^(u8|u16|u32|s8|s16|s32|str|strz|space)\s+([_a-zA-Z][_a-zA-Z0-9]*)\s+(.+)$", line):
                 if section not in ("data", "kernel-data"):
                     raise TASMError("Cannot use data labels in non-data section")
                 datatype = reg.group(1)

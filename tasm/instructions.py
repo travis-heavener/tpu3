@@ -137,6 +137,16 @@ def regcode(reg: str) -> int:
 def parse_data_label(datatype: str, literal: str, data: list[int]) -> None:
     # Handle datatype
     match datatype:
+        case "space":
+            # Extract space size
+            raw = re.match(r"^(0x[a-fA-F0-9]+|\d+)$", literal)
+            if not raw: raise TASMError(f"Cannot parse {datatype}: {literal}")
+            raw = raw.group(1)
+            space_len = int(raw, 16) if raw.startswith("0x") else int(raw)
+
+            # Add empty space
+            for i in range(space_len):
+                data.append(0)
         case "s8" | "s16" | "s32":
             raw = re.match(r"^([+-]0x[a-fA-F0-9]+|[+-]\d+)$", literal)
             if not raw: raise TASMError(f"Cannot parse {datatype}: {literal}")

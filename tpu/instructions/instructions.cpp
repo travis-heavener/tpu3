@@ -25,13 +25,53 @@ namespace tpu {
         switch (syscallNumber) {
             case 1: { // Write: str ptr in ESI, length in EBX
                 const u32 ptr = tpu.readReg32(RegCode::ESI);
-                const u32 len = tpu.readReg32(RegCode::EBX);
-                for (u32 i = 0; i < len; ++i)
-                    std::cout << static_cast<char>(mem.readByte( ptr + i ));
+                const u32 fd = tpu.readReg32(RegCode::EBX);
+                const u32 len = tpu.readReg32(RegCode::ECX);
+
+                // Verify ptr is valid
+                if (ptr < USER_SPACE_START) { tpu.setReg32(RegCode::EAX, 0xFFFF'FFFF); break; }
+
+                // Verify fd is valid
+                if (fd != 1 && fd != 2) { tpu.setReg32(RegCode::EAX, 0xFFFF'FFFF); break; }
+
+                // Write to stdout/stderr
+                for (u32 i = 0; i < len; ++i) {
+                    if (fd == 1) std::cout << static_cast<char>(mem.readByte( ptr + i ));
+                    else         std::cerr << static_cast<char>(mem.readByte( ptr + i ));
+                }
+
+                if (fd == 1) std::cout << std::flush;
+                else std::cerr << std::flush;
+                break;
+            }
+            case 2: { // Read: fd in EBX, buffer in ECX, buffer length in EDX
+                const u32 ptr = tpu.readReg32(RegCode::EDI);
+                const u32 fd = tpu.readReg32(RegCode::EBX);
+                const u32 maxLen = tpu.readReg32(RegCode::ECX);
+
+                // Verify ptr is valid
+                if (ptr < USER_SPACE_START) { tpu.setReg32(RegCode::EAX, 0xFFFF'FFFF); break; }
+
+                // Verify fd is valid
+                if (fd != 0) { tpu.setReg32(RegCode::EAX, 0xFFFF'FFFF); break; }
+
+                // Read until EOF or max buffer
+                u32 len = 0;
+                while (len < maxLen) {
+                    const int c = std::cin.get();
+                    if (c == EOF || c == '\n') break;
+                    mem.setByte(ptr + len, static_cast<u8>(c));
+                    ++len;
+                }
+
+                // Set number of bytes read
+                tpu.setReg32(RegCode::EAX, len);
+
                 break;
             }
             case 9: { // Time: seconds since Epoch in EBX
                 const u32 seconds = static_cast<u32>( std::time(nullptr) );
+                tpu.setReg32(RegCode::EAX, 0); // Indicate success
                 tpu.setReg32(RegCode::EBX, seconds);
                 break;
             }
