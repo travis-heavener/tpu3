@@ -34,6 +34,10 @@ section text
         mov EAX, 1      ; Write() syscall
         syscall
 
+        ; Put seconds since Epoch in EBX
+        mov EAX, 9      ; Time() syscall
+        syscall
+
         ; Kill the TPU
         mov EAX, 22
         syscall

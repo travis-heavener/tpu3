@@ -1,5 +1,6 @@
 #include "instructions.hpp"
 
+#include <ctime>
 #include <iostream>
 
 #include "../defines.hpp"
@@ -27,6 +28,11 @@ namespace tpu {
                 const u32 len = tpu.readReg32(RegCode::EBX);
                 for (u32 i = 0; i < len; ++i)
                     std::cout << static_cast<char>(mem.readByte( ptr + i ));
+                break;
+            }
+            case 9: { // Time: seconds since Epoch in EBX
+                const u32 seconds = static_cast<u32>( std::time(nullptr) );
+                tpu.setReg32(RegCode::EBX, seconds);
                 break;
             }
             default:
