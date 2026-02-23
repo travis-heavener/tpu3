@@ -160,7 +160,7 @@ def parse_input(fname: str, master_data: list[int]) -> None:
                     case "hlt":                         text.append(Inst.HLT)
                     case "uret":                        assembleURET(args, text)
                     case "setsyscall":                  assembleSETSYSCALL(args, text, labels_to_replace)
-                    case "mov":                         assembleMOV(args, text)
+                    case "mov":                         assembleMOV(args, text, labels_to_replace)
                     case "lb" | "lw" | "ldw" \
                         | "sb" | "sw" | "sdw":          assembleLOADSAVE(inst, args, text, labels_to_replace)
                     case "push" | "pushw" | "pushdw":   assemblePUSH(inst, args, text)

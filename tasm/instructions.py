@@ -223,7 +223,7 @@ def assembleSETSYSCALL(args: tuple[Arg], data: list[int], labels: list[Label]) -
 ################################### Register & Memory Methods ###################################
 #################################################################################################
 
-def assembleMOV(args: tuple[Arg], data: list[int]) -> None:
+def assembleMOV(args: tuple[Arg], data: list[int], labels: list[Label]) -> None:
     # Check args length
     if len(args) != 2: raise TASMError(f"Invalid number of arguments for MOV: {len(args)}")
 
@@ -269,6 +269,20 @@ def assembleMOV(args: tuple[Arg], data: list[int]) -> None:
         data.append( 5 )                # Append MOD
         data.append( args[0].value )    # Append first reg
         data.append( args[1].value )    # Append second reg
+    elif args[0].type == ArgType.REG32 and args[1].type in (ArgType.REL32, ArgType.LABEL):
+        data.append( 6 )                # Append MOD
+        data.append( args[0].value )    # Append first reg
+
+        if args[1].type == ArgType.LABEL:
+            data.append(regcode("IP"))  # Append offset register (ALWAYS IP FOR LABELS)
+            replace_pos = len(data)     # Store replacement position for label offset
+            data.extend([0, 0, 0, 0])   # Append placeholder offset
+
+            # Store label to be replaced
+            labels.append( Label(name=args[1].value, replace_pos=replace_pos, current_ip=len(data)) )
+        else:
+            data.append(args[1].relreg)            # Append offset register
+            simm_to_bytes(args[1].value, 32, data) # Append signed offset address
     else:
         raise TASMError("Invalid argument format to MOV")
 

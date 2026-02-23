@@ -104,6 +104,7 @@ Total: 1 byte (8 bits) + arguments if NO modifier fields are present, 2 bytes (1
 | --     |   reg8 |   reg8 |   0x30 |   3 |         -- | Moves an 8-bit value between two reg8.                     |
 | --     |  reg16 |  reg16 |   0x30 |   4 |         -- | Moves an 16-bit value between two reg16.                   |
 | --     |  reg32 |  reg32 |   0x30 |   5 |         -- | Moves an 32-bit value between two reg32.                   |
+| --     |  reg32 |  rel32 |   0x30 |   6 |         -- | Resolves a rel32 address into a reg32.                     |
 | lb     |   reg8 |  rel32 |   0x31 |   0 |   Rel. (0) | Loads a byte from a memory address into a reg8.            |
 | --     |   reg8 |   addr |   0x31 |   0 |   Abs. (1) | Loads a byte from a memory address into a reg8.            |
 | --     |   reg8 |  reg32 |   0x31 |   1 |         -- | Loads a byte from a memory address in a reg32 to a reg8.   |

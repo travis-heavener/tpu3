@@ -180,6 +180,7 @@ namespace tpu {
             /* reg8, reg8 */   case 3: tpu.setReg8( regA, tpu.readReg8(tpu.nextReg(mem)) ); break;
             /* reg16, reg16 */ case 4: tpu.setReg16( regA, tpu.readReg16(tpu.nextReg(mem)) ); break;
             /* reg32, reg32 */ case 5: tpu.setReg32( regA, tpu.readReg32(tpu.nextReg(mem)) ); break;
+            /* reg32, rel32 */ case 6: tpu.setReg32( regA, tpu.readRel32(mem) ); break;
             default: throw tpu::InvalidMODBitsException(std::to_string(static_cast<int>(MOD)) + " is invalid for MOV.");
         }
     }

@@ -1,3 +1,6 @@
+;section kernel-data
+;    u32 USER_SPACE_START        0x00040000
+
 section kernel
     ; Simple test
     syscall_1:
@@ -6,7 +9,7 @@ section kernel
 
     ; Cleans up and stops the TPU
     syscall_22:
-        mov EDX, 0xDEADBEEF
+        mov EDX, syscall_22
         hlt
 
     _kernel_start:
