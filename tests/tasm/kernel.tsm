@@ -21,7 +21,7 @@ section kernel
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 section data
-    strz WELCOME_MSG        "Welcome to TPUOS\n"
+    strz WELCOME_MSG "Welcome to TPUOS\n"
 
 section text
     _start:

@@ -19,6 +19,6 @@ section text
             jmp __strlen_loop   ; Jmp to loop start
 
         __strlen_end:
-            popdw EDI               ; Restore EDI
-            pop BL                  ; Restore BL
-            ret                     ; Return
+            popdw EDI           ; Restore EDI
+            pop BL              ; Restore BL
+            ret                 ; Return
