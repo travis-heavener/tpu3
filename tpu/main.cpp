@@ -42,10 +42,10 @@ void loadImageToMemory(tpu::Memory& memory, std::ifstream& handle) {
     handle.read( reinterpret_cast<char*>(&kernelLen), 4 );
     handle.read( reinterpret_cast<char*>(&textLen), 4 );
 
-    if (kernelLen > MAX_IMAGE_SIZE)
+    if (kernelLen > KERNEL_IMAGE_MAX_SIZE)
         throw std::runtime_error("Kernel image is too large.");
 
-    if (textLen > MAX_MEMORY_ALLOC - USER_SPACE_START)
+    if (textLen > USER_IMAGE_MAX_SIZE)
         throw std::runtime_error("User program is too large.");
 
     // Read kernel program (& its data segment after)

@@ -41,7 +41,7 @@
 #define IMAGE_START_ADDR    0x0001'0500
 
 // The maximum size of a TPU image
-#define MAX_IMAGE_SIZE      0x0002'0000
+#define KERNEL_IMAGE_MAX_SIZE      0x0002'0000
 
 // The address of the first syscall in the syscall table
 #define SYSCALL_TABLE_FIRST 0x0000'0100
@@ -55,7 +55,35 @@
 // The size of the kernel's stack
 #define KERNEL_STACK_SIZE   0x1'0000
 
+/**************************************/
+/*********** User Addresses ***********/
+/**************************************/
+
 // The start of user space
 #define USER_SPACE_START    0x0004'0000
+
+// The size of the user stack
+#define USER_STACK_SIZE     0x0300'0000
+
+// The maximum size of the user heap
+#define USER_HEAP_MAX_SIZE  0x0400'0000
+
+// The start of user stack
+#define USER_STACK_START    (MAX_MEMORY_ALLOC - USER_STACK_SIZE)
+
+// The end of the user stack
+#define USER_STACK_END      MAX_MEMORY_ALLOC
+
+// The start of the user heap
+#define USER_HEAP_START     (USER_STACK_START - USER_HEAP_MAX_SIZE)
+
+// The end of the user heap
+#define USER_HEAP_END       USER_STACK_START
+
+// The maximum size of a user program image
+#define USER_IMAGE_MAX_SIZE (USER_HEAP_START - USER_SPACE_START)
+
+// The end of the user image
+#define USER_IMAGE_END      USER_HEAP_START
 
 #endif

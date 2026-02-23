@@ -2,13 +2,11 @@ include stdlib.tsm
 include string.tsm
 
 section kernel-data
-    u32 USER_SPACE_START    0x00040000
     u32 MAX_MEMORY_ALLOC    0x10000000
 
 section kernel
     ; Cleans up and stops the TPU
     syscall_22:
-        mov EDX, syscall_22
         hlt
 
     _kernel_start:
@@ -25,10 +23,8 @@ section data
     strz WELCOME_MSG "Welcome to TPUOS\n"
 
 section text
-    _start:
-        ; Wait 3 seconds
-        mov EAX, 3
-        call sleep
+    toast:
+        pushdw RP       ; Save RP
 
         ; Calculate welcome message length
         mov ESI, WELCOME_MSG
@@ -38,6 +34,17 @@ section text
         mov EBX, EAX    ; Save strlen(WELCOME_MSG)
         mov EAX, 1      ; Write() syscall
         syscall
+
+        popdw RP        ; Restore RP
+        ret
+
+    _start:
+        ; Toast the user
+        call toast
+
+        ; Wait 3 seconds
+        mov EAX, 3
+        call sleep
 
         ; Put seconds since Epoch in EBX
         mov EAX, 9      ; Time() syscall
