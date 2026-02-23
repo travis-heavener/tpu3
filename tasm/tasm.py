@@ -24,7 +24,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(e)
         exit(1)
-    print("DATA:", data)
 
     if len(data) == 7: # First jmp instruction is 7 bytes
         print("ERROR: Missing \"text\" section, nothing to build.")

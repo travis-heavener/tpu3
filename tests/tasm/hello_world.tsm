@@ -1,5 +1,6 @@
 section kernel-data
     u32 USER_SPACE_START    0x00040000
+    u32 MAX_MEMORY_ALLOC    0x10000000
 
 section kernel
     ; Cleans up and stops the TPU
@@ -12,20 +13,48 @@ section kernel
         setsyscall 22, syscall_22
 
         ; Start user program
-        uret @0x00040000, @0x00050000
+        uret @0x00040000, @0x01000000
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 section data
-    str WELCOME_MSG         "Welcome to TPUOS\n"
-    u32 WELCOME_MSG_LEN     17
+    strz WELCOME_MSG        "Welcome to TPUOS\n"
 
 section text
     _start:
-        ; Write welcome message
-        mov EAX, 1
-        mov EBX, WELCOME_MSG_LEN
+        ; Calculate welcome message length
         mov ESI, WELCOME_MSG
+        call strlen
+
+        ; Write welcome message
+        mov EBX, EAX    ; Save strlen(WELCOME_MSG)
+        mov EAX, 1      ; Write() syscall
         syscall
 
         ; Kill the TPU
         mov EAX, 22
         syscall
+
+    ; Arguments:
+    ;   ESI: pointer to string
+    ; Returns:
+    ;   EAX: u32 length of the string
+    strlen:
+        push BL                 ; Backup BL
+        pushdw EDI              ; Backup EDI
+        mov EAX, 0              ; Create iterator
+        mov EDI, ESI            ; Copy ESI to EDI
+
+        __strlen_loop:
+            lb BL, EDI          ; Read next character
+            add BL, 0           ; Buffer BL for loop condition
+            jz __strlen_end     ; Loop escape condition
+            add EAX, 1          ; Increment iterator
+            add EDI, 1          ; Increment EDI
+            jmp __strlen_loop   ; Jmp to loop start
+
+        __strlen_end:
+            popdw EDI               ; Restore EDI
+            pop BL                  ; Restore BL
+            ret                     ; Return
