@@ -1,3 +1,31 @@
+section kernel
+    ; Simple test
+    syscall_1:
+        mov ECX, 0x98765432
+        sysret
+
+    ; Cleans up and stops the TPU
+    syscall_22:
+        mov EDX, 0xDEADBEEF
+        hlt
+
+    _kernel_start:
+        ; Populate syscall table
+        setsyscall 1, syscall_1
+        setsyscall 22, syscall_22
+
+        ; Start user program
+        uret @0x00040000, @0x00050000
+
 section text
     _start:
-        hlt
+        ; Do something
+        mov EBX, 99
+
+        ; Invoke test syscall
+        mov EAX, 1
+        syscall
+
+        ; Kill the TPU
+        mov EAX, 22
+        syscall

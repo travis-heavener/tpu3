@@ -37,13 +37,38 @@ void initSigHandler() {
 
 // Loads a TPU binary image from a file to memory
 void loadImageToMemory(tpu::Memory& memory, std::ifstream& handle) {
-    // Read entire file to memory (guaranteed to be smaller than memory)
+    // Read kernel and text segment start offsets
+    u32 kernelLen, textLen;
+    handle.read( reinterpret_cast<char*>(&kernelLen), 4 );
+    handle.read( reinterpret_cast<char*>(&textLen), 4 );
+
+    if (kernelLen > MAX_IMAGE_SIZE)
+        throw std::runtime_error("Kernel image is too large.");
+
+    if (textLen > MAX_MEMORY_ALLOC - USER_SPACE_START)
+        throw std::runtime_error("User program is too large.");
+
+    // Read kernel program (& its data segment after)
     u32 memPtr = IMAGE_START_ADDR;
-    const u32 stepSize = 1024;
-    do {
-        handle.read( reinterpret_cast<char*>(memory.data() + memPtr), stepSize );
-        memPtr += stepSize;
-    } while (handle.gcount() > 0);
+    for (u32 i = 0; i < kernelLen; ++i) {
+        handle.read( reinterpret_cast<char*>(memory.data() + memPtr), 1 );
+        u32 bytesRead = handle.gcount();
+        memPtr += bytesRead;
+
+        if (bytesRead == 0)
+            throw std::runtime_error("Unexpected EOF while reading kernel image.");
+    }
+
+    // Read user program (& its data segment after)
+    memPtr = USER_SPACE_START;
+    for (u32 i = 0; i < textLen; ++i) {
+        handle.read( reinterpret_cast<char*>(memory.data() + memPtr), 1 );
+        u32 bytesRead = handle.gcount();
+        memPtr += bytesRead;
+
+        if (bytesRead == 0)
+            throw std::runtime_error("Unexpected EOF while reading user program.");
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -61,11 +86,6 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    if (std::filesystem::file_size(argv[1]) > MAX_IMAGE_SIZE) {
-        CERR << "TPU image exceeds maximum allowed size: " << argv[1] << std::endl;
-        return EXIT_FAILURE;
-    }
-
     std::ifstream handle( argv[1], std::ios::binary );
     if (!handle.is_open()) {
         CERR << "Failed to open TPU image: " << argv[1] << std::endl;
@@ -80,6 +100,8 @@ int main(int argc, char* argv[]) {
         loadImageToMemory(memory, handle);
     } catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
+        handle.close();
+        return EXIT_FAILURE;
     }
 
     // Close the file

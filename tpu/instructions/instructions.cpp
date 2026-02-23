@@ -11,15 +11,19 @@ namespace tpu {
 
         const u32 syscallNumber = tpu.readReg32(RegCode::EAX);
 
-        // Verify syscall number is valid
+        // Determine address of syscall address from syscall table
+        const u32 tableAddr = SYSCALL_TABLE_FIRST + 4 * syscallNumber;
+
+        // Verify syscall number is in bounds
         if (syscallNumber >= SYSCALL_TABLE_SIZE / 4)
+            throw tpu::InvalidSyscallException(std::to_string(static_cast<int>(syscallNumber)) + " is an invalid syscall.");
+
+        // Verify the syscall actually is defined
+        if (mem.readDWord(tableAddr).dword == 0)
             throw tpu::InvalidSyscallException(std::to_string(static_cast<int>(syscallNumber)) + " is an invalid syscall.");
 
         // Backup IP after reading instruction
         tpu.setSRP( tpu.getIP() );
-
-        // Determine address of syscall address from syscall table
-        const u32 tableAddr = SYSCALL_TABLE_FIRST + 4 * syscallNumber;
 
         // Move stack ptr to kernel stack
         tpu.saveESPtoKSP(); // Backup SP
@@ -150,6 +154,20 @@ namespace tpu {
         tpu.setIP( newIP );
         tpu.setESP( newESP );
         tpu.setMode( TPUMode::USER );
+    }
+
+    void executeSETSYSCALL(TPU& tpu, Memory& mem) {
+        if (tpu.getMode() != TPUMode::KERNEL)
+            throw tpu::InsufficientModeException("Attempted to call setsyscall from non-kernel mode.");
+
+        // Determine syscall number
+        const u8 syscallNumber = tpu.nextByte(mem);
+
+        // Determine address of syscall address from syscall table
+        const u32 tableAddr = SYSCALL_TABLE_FIRST + 4 * syscallNumber;
+
+        // Resolve absolute label
+        mem.setDWord(tableAddr, tpu.readRel32(mem));
     }
 
     void executeMOV(TPU& tpu, Memory& mem) {

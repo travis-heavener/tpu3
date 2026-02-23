@@ -66,23 +66,33 @@ def assemble_args(parts: list[str]) -> tuple[Arg]:
     return tuple( args )
 
 # Reads the input file to assemble each line
-def parse_input(fname: str, data: list[int]) -> None:
+def parse_input(fname: str, master_data: list[int]) -> None:
     section: str = None
 
-    # A list of labels that must be resolved
-    labels_to_replace: list[Label] = []
+    t_text: list[int] = []  # text segment instructions
+    k_text: list[int] = []  # kernel segment instructions
+    t_data: list[int] = []  # data segment
+    k_data: list[int] = []  # kernel-data segment
 
-    # The offset positions of known labels
-    known_labels: dict[str, int] = {}
+    # A list of labels that must be resolved for kernel and text
+    t_labels_to_replace: list[Label] = []
+    k_labels_to_replace: list[Label] = []
+
+    # The offset positions of known labels for kernel and text
+    t_known_labels: dict[str, int] = {}
+    k_known_labels: dict[str, int] = {}
 
     # Init TASMError static fields
     line_num = 0
     TASMError.fname = fname
     TASMError.line = line_num
-    
-    # Add jmp instruction to _start label
-    data.extend( [Inst.JMP, 0, regcode("IP"), 0, 0, 0, 0] )
-    labels_to_replace.append( Label(name="_start", replace_pos=3, current_ip=7) )
+
+    # Add jmp instruction to start labels
+    t_text.extend( [Inst.JMP, 0, regcode("IP"), 0, 0, 0, 0] )
+    t_labels_to_replace.append( Label(name="_start", replace_pos=3, current_ip=7) )
+
+    k_text.extend( [Inst.JMP, 0, regcode("IP"), 0, 0, 0, 0] )
+    k_labels_to_replace.append( Label(name="_kernel_start", replace_pos=3, current_ip=7) )
 
     with open(fname, "r") as f:
         for line in f:
@@ -102,7 +112,7 @@ def parse_input(fname: str, data: list[int]) -> None:
             # Check for new section
             if reg := re.match(r"^section (.+)$", line):
                 section = reg.group(1)
-                if section not in ("text", "data"):
+                if section not in ("text", "data", "kernel"):
                     raise TASMError(f"Invalid section: {section}")
                 continue
 
@@ -110,14 +120,17 @@ def parse_input(fname: str, data: list[int]) -> None:
             if reg := re.match(r"^([_a-zA-Z][_a-zA-Z0-9]*):$", line):
                 label_name = reg.group(1)
 
-                if label_name in known_labels:
+                if (section == "text" and label_name in t_known_labels) or (section == "kernel" and label_name in k_known_labels):
                     raise TASMError(f"Duplicate label: {label_name}")
 
                 # Insert label
-                known_labels[label_name] = len(data)
+                if section == "text":
+                    t_known_labels[label_name] = len(t_text)
+                elif section == "kernel":
+                    k_known_labels[label_name] = len(k_text)
                 continue
 
-            if section == "text":
+            if section == "text" or section == "kernel":
                 # Check for instructions
                 inst = line.split(" ")[0]
                 remainder = line.replace(inst, "", 1)
@@ -128,43 +141,71 @@ def parse_input(fname: str, data: list[int]) -> None:
 
                 args: list[Arg] = assemble_args( parts )
 
+                if section == "kernel":
+                    text = k_text
+                    labels_to_replace = k_labels_to_replace
+                else:
+                    text = t_text
+                    labels_to_replace = t_labels_to_replace
+
                 match inst:
-                    case "nop":                         data.append(Inst.NOP)
-                    case "syscall":                     data.append(Inst.SYSCALL)
-                    case "sysret":                      data.append(Inst.SYSRET)
-                    case "call":                        assembleJMPLike(inst, args, data, labels_to_replace)
-                    case "ret":                         data.append(Inst.RET)
+                    case "nop":                         text.append(Inst.NOP)
+                    case "syscall":                     text.append(Inst.SYSCALL)
+                    case "sysret":                      text.append(Inst.SYSRET)
+                    case "call":                        assembleJMPLike(inst, args, text, labels_to_replace)
+                    case "ret":                         text.append(Inst.RET)
                     case "jmp" | "jz" | "jnz" \
                         | "jc" | "jnc" | "jo" | "jno" \
-                        | "js" | "jns" | "jp" | "jnp":  assembleJMPLike(inst, args, data, labels_to_replace)
-                    case "hlt":                         data.append(Inst.HLT)
-                    case "uret":                        assembleURET(args, data)
-                    case "mov":                         assembleMOV(args, data)
+                        | "js" | "jns" | "jp" | "jnp":  assembleJMPLike(inst, args, text, labels_to_replace)
+                    case "hlt":                         text.append(Inst.HLT)
+                    case "uret":                        assembleURET(args, text)
+                    case "setsyscall":                  assembleSETSYSCALL(args, text, labels_to_replace)
+                    case "mov":                         assembleMOV(args, text)
                     case "lb" | "lw" | "ldw" \
-                        | "sb" | "sw" | "sdw":          assembleLOADSAVE(inst, args, data, labels_to_replace)
-                    case "push" | "pushw" | "pushdw":   assemblePUSH(inst, args, data)
-                    case "pop" | "popw" | "popdw":      assemblePOP(inst, args, data)
+                        | "sb" | "sw" | "sdw":          assembleLOADSAVE(inst, args, text, labels_to_replace)
+                    case "push" | "pushw" | "pushdw":   assemblePUSH(inst, args, text)
+                    case "pop" | "popw" | "popdw":      assemblePOP(inst, args, text)
                     case "cmp" | "scmp" \
-                        | "and" | "or" | "xor":         assembleArith2(inst, args, data)
-                    case "not":                         assembleNOT(args, data)
+                        | "and" | "or" | "xor":         assembleArith2(inst, args, text)
+                    case "not":                         assembleNOT(args, text)
                     case "add" | "sadd" \
-                        | "sub" | "ssub":               assembleArith2(inst, args, data)
-                    case "mul" | "smul":                assembleArith1(inst, args, data)
+                        | "sub" | "ssub":               assembleArith2(inst, args, text)
+                    case "mul" | "smul":                assembleArith1(inst, args, text)
                     case _: raise TASMError(f"Invalid instruction: {inst}")
-            elif section == "data":
+            elif section == "data" or section == "kernel-data":
                 # Check for data
+                print("TODO - parse data")
                 pass
             else:
                 raise TASMError(f"Invalid section: {section}")
 
-    # Replace labels
-    for label in labels_to_replace:
+    # Replace text labels
+    for label in t_labels_to_replace:
         # Lookup label
-        if not label.name in known_labels:
+        if not label.name in t_known_labels:
             TASMError.fname = label.fname
             TASMError.line = label.line
-            raise TASMError(f"Unable to locate label: {label.name}")
+            raise TASMError(f"Unable to locate text segment label: {label.name}")
 
         # Calculate offset
-        offset = known_labels[label.name] - label.current_ip
-        insert_label_offset(offset=offset, insert_at=label.replace_pos, data=data)
+        offset = t_known_labels[label.name] - label.current_ip
+        insert_label_offset(offset=offset, insert_at=label.replace_pos, data=t_text)
+
+    # Replace kernel labels
+    for label in k_labels_to_replace:
+        # Lookup label
+        if not label.name in k_known_labels:
+            TASMError.fname = label.fname
+            TASMError.line = label.line
+            raise TASMError(f"Unable to locate kernel segment label: {label.name}")
+
+        # Calculate offset
+        offset = k_known_labels[label.name] - label.current_ip
+        insert_label_offset(offset=offset, insert_at=label.replace_pos, data=k_text)
+
+    # Insert to master data
+    imm_to_bytes( len(k_text) + len(k_data), 32, master_data ) # Length of kernel image
+    imm_to_bytes( len(t_text) + len(t_data), 32, master_data ) # Length of user image
+
+    master_data.extend( [*k_text, *k_data] ) # Append kernel image
+    master_data.extend( [*t_text, *t_data] ) # Append user image

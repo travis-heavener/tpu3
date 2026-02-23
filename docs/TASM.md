@@ -21,5 +21,12 @@ Note: `bin/tasm` is actually just a symbolic link to `tasm/tasm.py`.
 
 ## .TPU File Format
 
-The first 7 bytes of this file are a JMP instruction to the start of the instructions for the program.
-Everything between this instruction and the instructions (text section) is the data section.
+The first 4 bytes are the length of the kernel and kernel-data segments.
+The next 4 bytes are the length of the text and data segments.
+
+Immediately after the text and kernel segments are their respective data and kernel-data segments, if there are any.
+
+The TPU will load the kernel section into reserved memory and start executing from it.
+The first 7 bytes of the kernel segment are a JMP instruction to the start of the instructions for the kernel program.
+
+The first 7 bytes of the text segment are a JMP instruction to the start of the instructions for the user program, which is loaded into user space.

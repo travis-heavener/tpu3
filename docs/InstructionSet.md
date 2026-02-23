@@ -88,10 +88,11 @@ Total: 1 byte (8 bits) + arguments if NO modifier fields are present, 2 bytes (1
 | jnp     | reg32 |    -- |   0x0A |   3 |         -- | If the parity flag (PF) is clear, moves the IP to a memory address from a reg32.    |
 
 ## Kernel Protected Instructions
-| Inst.   | Op. A | Op. B | OpCode | MOD | Description                                                                         |
-|---------|-------|-------|--------|-----|-------------------------------------------------------------------------------------|
-| hlt     |    -- |    -- |   0x15 |  -- | Stops CPU clock.                                                                    |
-| uret    |  addr |  addr |   0x16 |  -- | Enters user mode after kernel initialization, setting the IP and ESP, respectively. |
+| Inst.      | Op. A | Op. B | OpCode | MOD | Description                                                                         |
+|------------|-------|-------|--------|-----|-------------------------------------------------------------------------------------|
+| hlt        |    -- |    -- |   0x15 |  -- | Stops CPU clock.                                                                    |
+| uret       |  addr |  addr |   0x16 |  -- | Enters user mode after kernel initialization, setting the IP and ESP, respectively. |
+| setsyscall |  imm8 | rel32 |   0x16 |  -- | Binds a syscall handler for the syscall number in imm8 using a rel32.               |
 
 ## Register & Memory Instructions
 

@@ -26,6 +26,7 @@ namespace tpu {
         // Kernel protected instructions
         HLT     = 0x15,
         URET    = 0x16,
+        SETSYSCALL = 0x17,
 
         // Register & Memory Instructions
         MOV     = 0x30,
@@ -60,6 +61,7 @@ namespace tpu {
     // Kernel Protected Instructions
     void executeHLT(TPU&, Memory&);
     void executeURET(TPU&, Memory&);
+    void executeSETSYSCALL(TPU&, Memory&);
 
     // Register & Memory Instructions
     void executeMOV(TPU&, Memory&);

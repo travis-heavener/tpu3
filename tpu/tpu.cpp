@@ -54,6 +54,7 @@ namespace tpu {
                 // Kernel Protected Instructions
                 case inst::HLT: executeHLT( *this, mem ); return;
                 EXECUTE_INSTRUCTION( URET  );
+                EXECUTE_INSTRUCTION( SETSYSCALL );
 
                 // Register & Memory Instructions
                 EXECUTE_INSTRUCTION( MOV  );

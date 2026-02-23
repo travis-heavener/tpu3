@@ -15,6 +15,7 @@ class Inst:
     # Kernel protected instructions
     HLT     = 0x15
     URET    = 0x16
+    SETSYSCALL = 0x17
 
     # Register & Memory Instructions
     MOV     = 0x30
@@ -194,6 +195,29 @@ def assembleURET(args: tuple[Arg], data: list[int]) -> None:
     # Append addresses
     imm_to_bytes(args[0].value, 32, data) 
     imm_to_bytes(args[1].value, 32, data) 
+
+def assembleSETSYSCALL(args: tuple[Arg], data: list[int], labels: list[Label]) -> None:
+    # Check args length
+    if len(args) != 2: raise TASMError(f"Invalid number of arguments for SETSYSCALL: {len(args)}")
+
+    data.append(Inst.SETSYSCALL)
+
+    if args[0].type == ArgType.IMM and args[1].type in (ArgType.REL32, ArgType.LABEL):
+        # Append syscall number
+        imm_to_bytes(args[0].value, 8, data)
+
+        if args[1].type == ArgType.LABEL:
+            data.append(regcode("IP"))  # Append offset register (ALWAYS IP FOR LABELS)
+            replace_pos = len(data)     # Store replacement position for label offset
+            data.extend([0, 0, 0, 0])   # Append placeholder offset
+
+            # Store label to be replaced
+            labels.append( Label(name=args[1].value, replace_pos=replace_pos, current_ip=len(data)) )
+        else:
+            data.append(args[1].relreg)            # Append offset register
+            simm_to_bytes(args[1].value, 32, data) # Append signed offset address
+    else:
+        raise TASMError("Invalid argument format to SETSYSCALL")
 
 #################################################################################################
 ################################### Register & Memory Methods ###################################
