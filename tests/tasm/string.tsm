@@ -1,0 +1,24 @@
+section text
+
+    ; Arguments:
+    ;   ESI: pointer to string
+    ; Returns:
+    ;   EAX: u32 length of the string
+    strlen:
+        push BL                 ; Backup BL
+        pushdw EDI              ; Backup EDI
+        mov EAX, 0              ; Create iterator
+        mov EDI, ESI            ; Copy ESI to EDI
+
+        __strlen_loop:
+            lb BL, EDI          ; Read next character
+            add BL, 0           ; Buffer BL for loop condition
+            jz __strlen_end     ; Loop escape condition
+            add EAX, 1          ; Increment iterator
+            add EDI, 1          ; Increment EDI
+            jmp __strlen_loop   ; Jmp to loop start
+
+        __strlen_end:
+            popdw EDI               ; Restore EDI
+            pop BL                  ; Restore BL
+            ret                     ; Return

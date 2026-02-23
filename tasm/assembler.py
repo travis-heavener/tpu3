@@ -1,3 +1,4 @@
+from pathlib import Path
 import re
 
 from instructions import *
@@ -65,51 +66,60 @@ def assemble_args(parts: list[str]) -> tuple[Arg]:
     # Tuple-ize for fun
     return tuple( args )
 
-# Reads the input file to assemble each line
-def parse_input(fname: str, master_data: list[int]) -> None:
+"""
+STATIC FIELDS FOR ASSEMBLER
+"""
+t_text: list[int] = []  # text segment instructions
+k_text: list[int] = []  # kernel segment instructions
+t_data: list[int] = []  # data segment
+k_data: list[int] = []  # kernel-data segment
+
+# A list of labels that must be resolved for kernel and text
+t_labels_to_replace: list[Label] = []
+k_labels_to_replace: list[Label] = []
+
+# The offset positions of known labels for kernel and text
+t_text_labels: dict[str, int] = {}
+k_text_labels: dict[str, int] = {}
+t_data_labels: dict[str, int] = {}
+k_data_labels: dict[str, int] = {}
+
+# The included file stack, to prevent cyclical includes
+include_stack: list[str] = []
+
+def assemble_file(fname: str) -> None:
+    # Detect cyclical imports
+    full_fname = Path(fname).resolve()
+    if full_fname in include_stack:
+        raise TASMError(f"Cyclical import of {full_fname}")
+    include_stack.append( full_fname )
+
     section: str = None
-
-    t_text: list[int] = []  # text segment instructions
-    k_text: list[int] = []  # kernel segment instructions
-    t_data: list[int] = []  # data segment
-    k_data: list[int] = []  # kernel-data segment
-
-    # A list of labels that must be resolved for kernel and text
-    t_labels_to_replace: list[Label] = []
-    k_labels_to_replace: list[Label] = []
-
-    # The offset positions of known labels for kernel and text
-    t_text_labels: dict[str, int] = {}
-    k_text_labels: dict[str, int] = {}
-    t_data_labels: dict[str, int] = {}
-    k_data_labels: dict[str, int] = {}
-
-    # Init TASMError static fields
     line_num = 0
-    TASMError.fname = fname
-    TASMError.line = line_num
-
-    # Add jmp instruction to start labels
-    t_text.extend( [Inst.JMP, 0, regcode("IP"), 0, 0, 0, 0] )
-    t_labels_to_replace.append( Label(name="_start", replace_pos=3, current_ip=7) )
-
-    k_text.extend( [Inst.JMP, 0, regcode("IP"), 0, 0, 0, 0] )
-    k_labels_to_replace.append( Label(name="_kernel_start", replace_pos=3, current_ip=7) )
 
     with open(fname, "r") as f:
+        # Update TASMError static fields
+        TASMError.fname = full_fname
+        TASMError.line = line_num
+
         for line in f:
             # Update TASMError's line ref
             line_num += 1
             TASMError.line = line_num
 
-            # Remove CR & LF
-            line = line.replace("\r", "").replace("\n", "")
+            line = line.replace("\r", "").replace("\n", "") # Remove CR & LF
+            line = remove_comments(line).strip()            # Remove comments
+            if len(line) == 0: continue                     # Skip blank lines
 
-            # Remove comments
-            line = remove_comments(line).strip()
+            # Check for file include
+            if reg := re.match(r"^include\s+(.+)$", line):
+                # Assemble file
+                fname_dir = Path(fname).resolve().parent
+                assemble_file( fname_dir / reg.group(1) )
 
-            # Skip blank lines
-            if len(line) == 0: continue
+                # Update fname
+                TASMError.fname = fname
+                continue
 
             # Check for data segment type
             if reg := re.match(r"^(u8|u16|u32|s8|s16|s32|str|strz)\s+([_a-zA-Z][_a-zA-Z0-9]*)\s+(.+)$", line):
@@ -120,10 +130,8 @@ def parse_input(fname: str, master_data: list[int]) -> None:
                 literal = reg.group(3)
 
                 # Append label
-                if section == "data":
-                    t_data_labels[label_name] = len(t_data)
-                else:
-                    k_data_labels[label_name] = len(k_data)
+                if section == "data":   t_data_labels[label_name] = len(t_data)
+                else:                   k_data_labels[label_name] = len(k_data)
 
                 # Parse data
                 parse_data_label(datatype, literal, t_data if section == "data" else k_data)
@@ -145,10 +153,8 @@ def parse_input(fname: str, master_data: list[int]) -> None:
                     raise TASMError(f"Duplicate label: {label_name}")
 
                 # Insert label
-                if section == "text":
-                    t_text_labels[label_name] = len(t_text)
-                elif section == "kernel":
-                    k_text_labels[label_name] = len(k_text)
+                if section == "text":       t_text_labels[label_name] = len(t_text)
+                elif section == "kernel":   k_text_labels[label_name] = len(k_text)
                 continue
 
             if section == "text" or section == "kernel":
@@ -195,6 +201,21 @@ def parse_input(fname: str, master_data: list[int]) -> None:
                     case _: raise TASMError(f"Invalid instruction: {inst}")
             else:
                 raise TASMError(f"Invalid section: {section}")
+
+    # Remove this file from the include stack
+    include_stack.pop()
+
+# Reads the input file to assemble each line
+def parse_input(fname: str, master_data: list[int]) -> None:
+    # Add jmp instruction to start labels
+    t_text.extend( [Inst.JMP, 0, regcode("IP"), 0, 0, 0, 0] )
+    t_labels_to_replace.append( Label(name="_start", replace_pos=3, current_ip=7) )
+
+    k_text.extend( [Inst.JMP, 0, regcode("IP"), 0, 0, 0, 0] )
+    k_labels_to_replace.append( Label(name="_kernel_start", replace_pos=3, current_ip=7) )
+
+    # Assemble the file
+    assemble_file(fname)
 
     # Replace text labels
     for label in t_labels_to_replace:

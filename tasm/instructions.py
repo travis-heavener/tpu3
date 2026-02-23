@@ -177,7 +177,6 @@ def parse_data_label(datatype: str, literal: str, data: list[int]) -> None:
             }
 
             # Escape characters & build string
-            parsed_literal = b""
             i = 1
             while i < len(literal) - 1:
                 if literal[i] == "\\":
