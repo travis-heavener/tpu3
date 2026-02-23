@@ -1,3 +1,4 @@
+include stdlib.tsm
 include string.tsm
 
 section kernel-data
@@ -25,6 +26,10 @@ section data
 
 section text
     _start:
+        ; Wait 3 seconds
+        mov EAX, 3
+        call sleep
+
         ; Calculate welcome message length
         mov ESI, WELCOME_MSG
         call strlen

@@ -1,0 +1,27 @@
+section text
+    ; Arguments
+    ;   EAX: number of seconds to sleep, as a u32
+    sleep:
+        pushdw EDX              ; Save EDX
+        pushdw EBX              ; Save EBX
+        pushdw EAX              ; Save EAX
+        mov EDX, EAX            ; Store duration in EDX
+
+        ; Get current time
+        mov EAX, 9              ; Time() is syscall 9
+        syscall                 ; Time() syscall
+        add EDX, EBX            ; Store wakeup time in EDX
+
+        __sleep_loop:
+            syscall             ; Time() syscall
+            cmp EDX, EBX        ; Loop condition
+            jc __sleep_end      ; End if carry set (EBX > EDX)
+            jz __sleep_end      ; End if zero set (EBX == EDX)
+            jmp __sleep_loop    ; Continue (EBX < EDX)
+
+        __sleep_end:
+            popdw EAX               ; Restore EAX
+            popdw EBX               ; Restore EBX
+            popdw EDX               ; Restore EDX
+            ret
+
