@@ -1,34 +1,37 @@
 class Inst:
     # Control Instructions
     NOP     = 0x00
-    HLT     = 0x01
-    SYSCALL = 0x02
-    SYSRET  = 0x03
-    CALL    = 0x04
-    RET     = 0x05
-    JMP     = 0x06
-    JZ      = 0x07
-    JC      = 0x08
-    JO      = 0x09
-    JS      = 0x0A
-    JP      = 0x0B
+    SYSCALL = 0x01
+    SYSRET  = 0x02
+    CALL    = 0x03
+    RET     = 0x04
+    JMP     = 0x05
+    JZ      = 0x06
+    JC      = 0x07
+    JO      = 0x08
+    JS      = 0x09
+    JP      = 0x0A
+
+    # Kernel protected instructions
+    HLT     = 0x15
+    URET    = 0x16
 
     # Register & Memory Instructions
-    MOV     = 0x10
-    LB      = 0x11
-    SB      = 0x12
-    PUSH    = 0x13
-    POP     = 0x14
+    MOV     = 0x30
+    LB      = 0x31
+    SB      = 0x32
+    PUSH    = 0x33
+    POP     = 0x34
 
     # Bitwise & Arithmetic Instructions
-    CMP     = 0x21
-    AND     = 0x22
-    OR      = 0x23
-    XOR     = 0x24
-    NOT     = 0x25
-    ADD     = 0x2A
-    SUB     = 0x2B
-    MUL     = 0x2C
+    CMP     = 0x61
+    AND     = 0x62
+    OR      = 0x63
+    XOR     = 0x64
+    NOT     = 0x65
+    ADD     = 0x6A
+    SUB     = 0x6B
+    MUL     = 0x6C
 
 class AddressMode:
     RELATIVE = 0
@@ -174,6 +177,23 @@ def assembleJMPLike(inst: str, args: tuple[Arg], data: list[int], labels: list[L
         data.append(args[0].value)              # Append regcode
     else:
         raise TASMError(f"Invalid argument format to {inst.upper()}")
+
+#################################################################################################
+################################### Kernel Protected Methods ####################################
+#################################################################################################
+
+def assembleURET(args: tuple[Arg], data: list[int]) -> None:
+    # Check args length
+    if len(args) != 2: raise TASMError(f"Invalid number of arguments for URET: {len(args)}")
+
+    data.append(Inst.URET)
+
+    if args[0].type != ArgType.ADDR or args[1].type != ArgType.ADDR:
+        raise TASMError("Invalid argument format to URET")
+
+    # Append addresses
+    imm_to_bytes(args[0].value, 32, data) 
+    imm_to_bytes(args[1].value, 32, data) 
 
 #################################################################################################
 ################################### Register & Memory Methods ###################################

@@ -127,6 +127,31 @@ namespace tpu {
 
     #undef executeJMPLike
 
+    void executeHLT(TPU& tpu, Memory&) {
+        if (tpu.getMode() != TPUMode::KERNEL)
+            throw tpu::InsufficientModeException("Attempted to call uret from non-kernel mode.");
+    }
+
+    void executeURET(TPU& tpu, Memory& mem) {
+        if (tpu.getMode() != TPUMode::KERNEL)
+            throw tpu::InsufficientModeException("Attempted to call uret from non-kernel mode.");
+
+        // Verify addresses are valid
+        const u32 newIP = tpu.nextDWord(mem).dword;
+        const u32 newESP = tpu.nextDWord(mem).dword;
+
+        if (newIP < USER_SPACE_START)
+            throw tpu::InvalidAddressException("Address for IP is outside user space for uret.");
+
+        if (newESP < USER_SPACE_START)
+            throw tpu::InvalidAddressException("Address for ESP is outside user space for uret.");
+
+        // Update registers
+        tpu.setIP( newIP );
+        tpu.setESP( newESP );
+        tpu.setMode( TPUMode::USER );
+    }
+
     void executeMOV(TPU& tpu, Memory& mem) {
         const u8 MOD = IMOD(tpu.nextByte(mem));
         const RegCode regA = tpu.nextReg(mem);

@@ -30,6 +30,7 @@ namespace tpu {
     EXCEPTION_MSG_CLASS(InvalidRegCodeException);
     EXCEPTION_MSG_CLASS(InvalidSyscallException);
     EXCEPTION_MSG_CLASS(InsufficientModeException);
+    EXCEPTION_MSG_CLASS(InvalidAddressException);
 
     // Data types
     typedef uint64_t u64;

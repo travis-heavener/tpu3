@@ -40,7 +40,6 @@ namespace tpu {
             switch (instruction) {
                 // Control Instructions
                 case inst::NOP: break;
-                case inst::HLT: return;
                 EXECUTE_INSTRUCTION( SYSCALL );
                 EXECUTE_INSTRUCTION( SYSRET );
                 EXECUTE_INSTRUCTION( CALL );
@@ -51,6 +50,10 @@ namespace tpu {
                 EXECUTE_INSTRUCTION( JO   );
                 EXECUTE_INSTRUCTION( JS   );
                 EXECUTE_INSTRUCTION( JP   );
+
+                // Kernel Protected Instructions
+                case inst::HLT: executeHLT( *this, mem ); return;
+                EXECUTE_INSTRUCTION( URET  );
 
                 // Register & Memory Instructions
                 EXECUTE_INSTRUCTION( MOV  );

@@ -55,4 +55,7 @@
 // The size of the kernel's stack
 #define KERNEL_STACK_SIZE   0x1'0000
 
+// The start of user space
+#define USER_SPACE_START    0x0004'0000
+
 #endif

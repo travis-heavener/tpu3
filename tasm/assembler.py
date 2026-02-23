@@ -130,7 +130,6 @@ def parse_input(fname: str, data: list[int]) -> None:
 
                 match inst:
                     case "nop":                         data.append(Inst.NOP)
-                    case "hlt":                         data.append(Inst.HLT)
                     case "syscall":                     data.append(Inst.SYSCALL)
                     case "sysret":                      data.append(Inst.SYSRET)
                     case "call":                        assembleJMPLike(inst, args, data, labels_to_replace)
@@ -138,6 +137,8 @@ def parse_input(fname: str, data: list[int]) -> None:
                     case "jmp" | "jz" | "jnz" \
                         | "jc" | "jnc" | "jo" | "jno" \
                         | "js" | "jns" | "jp" | "jnp":  assembleJMPLike(inst, args, data, labels_to_replace)
+                    case "hlt":                         data.append(Inst.HLT)
+                    case "uret":                        assembleURET(args, data)
                     case "mov":                         assembleMOV(args, data)
                     case "lb" | "lw" | "ldw" \
                         | "sb" | "sw" | "sdw":          assembleLOADSAVE(inst, args, data, labels_to_replace)
