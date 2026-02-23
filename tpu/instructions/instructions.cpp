@@ -1,5 +1,7 @@
 #include "instructions.hpp"
 
+#include <iostream>
+
 #include "../defines.hpp"
 
 namespace tpu {
@@ -18,22 +20,34 @@ namespace tpu {
         if (syscallNumber >= SYSCALL_TABLE_SIZE / 4)
             throw tpu::InvalidSyscallException(std::to_string(static_cast<int>(syscallNumber)) + " is an invalid syscall.");
 
-        // Verify the syscall actually is defined
-        if (mem.readDWord(tableAddr).dword == 0)
-            throw tpu::InvalidSyscallException(std::to_string(static_cast<int>(syscallNumber)) + " is an invalid syscall.");
+        // Intercept "magic" syscalls
+        switch (syscallNumber) {
+            case 1: { // Write: str ptr in ESI, length in EBX
+                const u32 ptr = tpu.readReg32(RegCode::ESI);
+                const u32 len = tpu.readReg32(RegCode::EBX);
+                for (u32 i = 0; i < len; ++i)
+                    std::cout << static_cast<char>(mem.readByte( ptr + i ));
+                break;
+            }
+            default:
+                // Verify the syscall actually is defined
+                if (mem.readDWord(tableAddr).dword == 0)
+                    throw tpu::InvalidSyscallException(std::to_string(static_cast<int>(syscallNumber)) + " is an invalid syscall.");
 
-        // Backup IP after reading instruction
-        tpu.setSRP( tpu.getIP() );
+                // Backup IP after reading instruction
+                tpu.setSRP( tpu.getIP() );
 
-        // Move stack ptr to kernel stack
-        tpu.saveESPtoKSP(); // Backup SP
-        tpu.setESP( KERNEL_STACK_LOWER );
+                // Move stack ptr to kernel stack
+                tpu.saveESPtoKSP(); // Backup SP
+                tpu.setESP( KERNEL_STACK_LOWER );
 
-        // Enter kernel mode
-        tpu.setMode( TPUMode::KERNEL );
+                // Enter kernel mode
+                tpu.setMode( TPUMode::KERNEL );
 
-        // Dereference the syscall table address ptr
-        tpu.setIP( mem.readDWord(tableAddr).dword );
+                // Dereference the syscall table address ptr
+                tpu.setIP( mem.readDWord(tableAddr).dword );
+                break;
+        }
     }
 
     void executeSYSRET(TPU& tpu, Memory&) {

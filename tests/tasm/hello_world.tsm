@@ -1,12 +1,7 @@
-;section kernel-data
-;    u32 USER_SPACE_START        0x00040000
+section kernel-data
+    u32 USER_SPACE_START    0x00040000
 
 section kernel
-    ; Simple test
-    syscall_1:
-        mov ECX, 0x98765432
-        sysret
-
     ; Cleans up and stops the TPU
     syscall_22:
         mov EDX, syscall_22
@@ -14,19 +9,21 @@ section kernel
 
     _kernel_start:
         ; Populate syscall table
-        setsyscall 1, syscall_1
         setsyscall 22, syscall_22
 
         ; Start user program
         uret @0x00040000, @0x00050000
 
+section data
+    str WELCOME_MSG         "Welcome to TPUOS\n"
+    u32 WELCOME_MSG_LEN     17
+
 section text
     _start:
-        ; Do something
-        mov EBX, 99
-
-        ; Invoke test syscall
+        ; Write welcome message
         mov EAX, 1
+        mov EBX, WELCOME_MSG_LEN
+        mov ESI, WELCOME_MSG
         syscall
 
         ; Kill the TPU

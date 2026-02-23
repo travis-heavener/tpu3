@@ -79,8 +79,10 @@ def parse_input(fname: str, master_data: list[int]) -> None:
     k_labels_to_replace: list[Label] = []
 
     # The offset positions of known labels for kernel and text
-    t_known_labels: dict[str, int] = {}
-    k_known_labels: dict[str, int] = {}
+    t_text_labels: dict[str, int] = {}
+    k_text_labels: dict[str, int] = {}
+    t_data_labels: dict[str, int] = {}
+    k_data_labels: dict[str, int] = {}
 
     # Init TASMError static fields
     line_num = 0
@@ -109,10 +111,28 @@ def parse_input(fname: str, master_data: list[int]) -> None:
             # Skip blank lines
             if len(line) == 0: continue
 
+            # Check for data segment type
+            if reg := re.match(r"^(u8|u16|u32|s8|s16|s32|str|strz)\s+([_a-zA-Z][_a-zA-Z0-9]*)\s+(.+)$", line):
+                if section not in ("data", "kernel-data"):
+                    raise TASMError("Cannot use data labels in non-data section")
+                datatype = reg.group(1)
+                label_name = reg.group(2)
+                literal = reg.group(3)
+
+                # Append label
+                if section == "data":
+                    t_data_labels[label_name] = len(t_data)
+                else:
+                    k_data_labels[label_name] = len(k_data)
+
+                # Parse data
+                parse_data_label(datatype, literal, t_data if section == "data" else k_data)
+                continue
+
             # Check for new section
             if reg := re.match(r"^section (.+)$", line):
                 section = reg.group(1)
-                if section not in ("text", "data", "kernel"):
+                if section not in ("text", "data", "kernel", "kernel-data"):
                     raise TASMError(f"Invalid section: {section}")
                 continue
 
@@ -120,14 +140,15 @@ def parse_input(fname: str, master_data: list[int]) -> None:
             if reg := re.match(r"^([_a-zA-Z][_a-zA-Z0-9]*):$", line):
                 label_name = reg.group(1)
 
-                if (section == "text" and label_name in t_known_labels) or (section == "kernel" and label_name in k_known_labels):
+                if (section == "text" and label_name in {**t_data_labels, **t_text_labels}) \
+                    or (section == "kernel" and label_name in {**k_data_labels, **k_text_labels}):
                     raise TASMError(f"Duplicate label: {label_name}")
 
                 # Insert label
                 if section == "text":
-                    t_known_labels[label_name] = len(t_text)
+                    t_text_labels[label_name] = len(t_text)
                 elif section == "kernel":
-                    k_known_labels[label_name] = len(k_text)
+                    k_text_labels[label_name] = len(k_text)
                 continue
 
             if section == "text" or section == "kernel":
@@ -172,35 +193,37 @@ def parse_input(fname: str, master_data: list[int]) -> None:
                         | "sub" | "ssub":               assembleArith2(inst, args, text)
                     case "mul" | "smul":                assembleArith1(inst, args, text)
                     case _: raise TASMError(f"Invalid instruction: {inst}")
-            elif section == "data" or section == "kernel-data":
-                # Check for data
-                print("TODO - parse data")
-                pass
             else:
                 raise TASMError(f"Invalid section: {section}")
 
     # Replace text labels
     for label in t_labels_to_replace:
         # Lookup label
-        if not label.name in t_known_labels:
+        if not label.name in t_text_labels and not label.name in t_data_labels:
             TASMError.fname = label.fname
             TASMError.line = label.line
             raise TASMError(f"Unable to locate text segment label: {label.name}")
 
         # Calculate offset
-        offset = t_known_labels[label.name] - label.current_ip
+        if label.name in t_text_labels:
+            offset = t_text_labels[label.name] - label.current_ip
+        else:
+            offset = len(t_text) + t_data_labels[label.name] - label.current_ip
         insert_label_offset(offset=offset, insert_at=label.replace_pos, data=t_text)
 
     # Replace kernel labels
     for label in k_labels_to_replace:
         # Lookup label
-        if not label.name in k_known_labels:
+        if not label.name in k_text_labels and not label.name in k_data_labels:
             TASMError.fname = label.fname
             TASMError.line = label.line
             raise TASMError(f"Unable to locate kernel segment label: {label.name}")
 
         # Calculate offset
-        offset = k_known_labels[label.name] - label.current_ip
+        if label.name in k_text_labels:
+            offset = k_text_labels[label.name] - label.current_ip
+        else:
+            offset = len(k_text) + k_data_labels[label.name] - label.current_ip
         insert_label_offset(offset=offset, insert_at=label.replace_pos, data=k_text)
 
     # Insert to master data

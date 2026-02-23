@@ -1,3 +1,5 @@
+import re
+
 class Inst:
     # Control Instructions
     NOP     = 0x00
@@ -127,6 +129,72 @@ def regcode(reg: str) -> int:
         "EAX", "AX", "AH", "AL", "EBX", "BX", "BH", "BL", "ECX", "CX", "CH", "CL", "EDX", "DX", "DH", "DL",
         "IP", "ESP", "SP", "EBP", "BP", "ESI", "SI", "EDI", "DI", "RP"
     ].index(reg)
+
+#################################################################################################
+##################################### Data Segment Assembler ####################################
+#################################################################################################
+
+def parse_data_label(datatype: str, literal: str, data: list[int]) -> None:
+    # Handle datatype
+    match datatype:
+        case "s8" | "s16" | "s32":
+            raw = re.match(r"^([+-]0x[a-fA-F0-9]+|[+-]\d+)$", literal)
+            if not raw: raise TASMError(f"Cannot parse {datatype}: {literal}")
+            raw = raw.group(1)
+
+            # Parse value
+            width = int(datatype[1:])
+            sign = -1 if raw[0] == "-" else 1
+            raw = raw[1:] # Remove sign
+
+            if raw.startswith("0x"):
+                simm_to_bytes( sign * int(raw, 16), width, data )
+            else:
+                simm_to_bytes( sign * int(raw), width, data )
+        case "u8" | "u16" | "u32":
+            raw = re.match(r"^(0x[a-fA-F0-9]+|\d+)$", literal)
+            if not raw: raise TASMError(f"Cannot parse {datatype}: {literal}")
+            raw = raw.group(1)
+            width = int(datatype[1:])
+
+            if raw.startswith("0x"):
+                simm_to_bytes( int(raw, 16), width, data )
+            else:
+                simm_to_bytes( int(raw), width, data )
+        case "str" | "strz":
+            raw = re.match(r'^".*"$', literal)
+            if not raw: raise TASMError(f"Cannot parse {datatype}: {literal}")
+
+            # Check for unescaped backslashes
+            escapes = {
+                "\\\\": "\\",
+                "\\\"": "\"",
+                "\\'": "'",
+                "\\t": "\t",
+                "\\n": "\n",
+                "\\r": "\r",
+                "\\0": "\0"
+            }
+
+            # Escape characters & build string
+            parsed_literal = b""
+            i = 1
+            while i < len(literal) - 1:
+                if literal[i] == "\\":
+                    if i + 2 == len(literal):
+                        raise TASMError(f"Cannot parse {datatype}: {literal}")
+                    elif literal[i:i+2] in escapes:
+                        data.append( ord(escapes[literal[i:i+2]]) )
+                        i += 1
+                    else:
+                        raise TASMError(f"Cannot parse {datatype}: {literal}")
+                else:
+                    data.append( ord(literal[i]) )
+                i += 1
+
+            # Append null terminator
+            if datatype == "strz":
+                data.append( 0 )
 
 #################################################################################################
 ################################# Instruction Assembler Methods #################################
