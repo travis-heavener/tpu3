@@ -2,6 +2,8 @@ section text
 
     ; Arguments:
     ;   ESI: pointer to string
+    ; Modifies:
+    ;   EAX
     ; Returns:
     ;   EAX: u32 length of the string
     strlen:
@@ -22,3 +24,44 @@ section text
             popdw EDI           ; Restore EDI
             pop BL              ; Restore BL
             ret                 ; Return
+
+    ; Arguments:
+    ;   ESI: pointer to string A
+    ;   EAX: pointer to string B
+    ; Modifies:
+    ;   EAX
+    ; Returns:
+    ;   EAX: 0 if A==B, < 0 if A < B, > 0 if A > B
+    strcmp:
+        pushdw EBX              ; Save EBX
+        pushdw ECX              ; Save ECX
+        pushdw EDX              ; Save EDX
+
+        mov EBX, ESI            ; Move A to EBX
+        mov ECX, EAX            ; Move B to ECX
+
+        __strcmp_loop:
+            xor EAX, EAX        ; Zero EAX
+            xor EDX, EDX        ; Zero EDX
+
+            lb AL, EBX          ; AL = *A
+            lb DL, ECX          ; DL = *B
+
+            sub EAX, EDX        ; *A - *B
+            jnz __strcmp_end    ; If different, return
+
+            xor EAX, EAX        ; Zero EAX
+            lb AL, EBX          ; AL = *A
+            add AL, 0           ; Check if *A == *B == 0
+            jz __strcmp_end     ; If both are zero, return
+
+            ; Otherwise, *A != 0 && *B != 0
+            add EBX, 1          ; Increment ptr to A
+            add ECX, 1          ; Increment ptr to B
+            jmp __strcmp_loop   ; Reiterate
+
+        __strcmp_end:
+            popdw EDX               ; Restore EDX
+            popdw ECX               ; Restore ECX
+            popdw EBX               ; Restore EBX
+            ret
