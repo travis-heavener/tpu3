@@ -42,6 +42,9 @@ namespace tpu {
 
                 if (fd == 1) std::cout << std::flush;
                 else std::cerr << std::flush;
+
+                // Set number of bytes wrtiten
+                tpu.setReg32(RegCode::EAX, len);
                 break;
             }
             case 2: { // Read: fd in EBX, buffer in ECX, buffer length in EDX
