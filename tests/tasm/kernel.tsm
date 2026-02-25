@@ -45,7 +45,7 @@ section text
         ; Read username
         mov EAX, 2              ; Read() syscall
         mov EBX, 0              ; fd = stdin
-        mov ECX, usernameLen    ; Specify length of buffer
+        ldw ECX, usernameLen    ; Specify length of buffer
         mov EDI, username       ; Specify where to store the string
         syscall
         pushdw EAX              ; Save username length
