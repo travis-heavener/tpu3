@@ -35,4 +35,4 @@ if __name__ == "__main__":
         for byte in data:
             f.write(byte.to_bytes(1, "little", signed=False))
 
-    print("Successfully built TPU image at:", argv[1])
+    print("✅ Built image at:", argv[2])
