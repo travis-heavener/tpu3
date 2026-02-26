@@ -62,7 +62,7 @@ namespace tpu {
                 u32 len = 0;
                 while (len < maxLen) {
                     const int c = std::cin.get();
-                    if (c == EOF || c == '\n') break;
+                    if (c == EOF || c == '\n' || !std::isprint(c)) break;
                     mem.setByte(ptr + len, static_cast<u8>(c));
                     ++len;
                 }
