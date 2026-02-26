@@ -196,7 +196,7 @@ namespace tpu {
 
     void executeHLT(TPU& tpu, Memory&) {
         if (tpu.getMode() != TPUMode::KERNEL)
-            throw tpu::InsufficientModeException("Attempted to call uret from non-kernel mode.");
+            throw tpu::InsufficientModeException("Attempted to call hlt from non-kernel mode.");
     }
 
     void executeURET(TPU& tpu, Memory& mem) {
