@@ -65,3 +65,75 @@ section text
             popdw ECX               ; Restore ECX
             popdw EBX               ; Restore EBX
             ret
+
+    ; Determines whether or not a character is a numeric value
+    ; Arguments:
+    ;   EAX: the character to check
+    ; Modifies:
+    ;   EAX
+    ; Returns:
+    ;   EAX: 0 if non-numeric, 1 if numeric
+    isnum:
+        cmp EAX, 48      ; '0' == 48
+        jc __isnum_false ; EAX < '0'
+
+        cmp EAX, 58       ; '9' + 1 == 58
+        jnc __isnum_false ; EAX > '9'
+
+        mov EAX, 1 ; '0' <= EAX <= '9'
+        ret
+
+        __isnum_false:
+            mov EAX, 0
+            ret
+
+    ; Parses a strz to an unsigned integral value (u32)
+    ; Arguments:
+    ;   ESI: pointer to a null-terminated string
+    ; Modifies:
+    ;   EAX
+    ; Returns:
+    ;   EAX: the u32 value of the number stored in ESI, up to the last numeric character (0-9)
+    atoui:
+        pushdw RP
+        pushdw EBX
+        pushdw ECX
+        pushdw EDX
+
+        mov EAX, 0      ; Placeholder
+        xor EBX, EBX    ; Char/decimal buffer
+        mov ECX, 10     ; Const (u32)10
+        mov EDX, ESI    ; EDX = ESI
+
+        __atoi_loop:
+            ; Verify string is not terminated
+            lb BL, EDX
+            cmp BL, 0
+            jz __atoi_end
+
+            ; Verify char is numeric
+            pushdw EAX
+            mov EAX, EBX
+            call isnum
+            cmp EAX, 0
+            popdw EAX
+            jz __atoi_end
+
+            ; Otherwise, parse
+            pushdw EDX  ; Save EDX
+            mul ECX     ; Shift decimal
+            popdw EDX   ; Restore EDX after mul (discard high dword)
+            sub BL, 48  ; 48 == '0'
+            add EAX, EBX
+
+            ; Increment & reiterate
+            add EDX, 1
+            jmp __atoi_loop
+
+        __atoi_end:
+            popdw EDX
+            popdw ECX
+            popdw EBX
+            popdw RP
+            ret
+

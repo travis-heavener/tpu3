@@ -50,6 +50,7 @@ namespace tpu {
                 EXECUTE_INSTRUCTION( JO   );
                 EXECUTE_INSTRUCTION( JS   );
                 EXECUTE_INSTRUCTION( JP   );
+                case inst::DBG: this->dumpRegs(); break;
 
                 // Kernel Protected Instructions
                 case inst::HLT: executeHLT( *this, mem ); return;

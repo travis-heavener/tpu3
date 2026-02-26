@@ -22,6 +22,7 @@ namespace tpu {
         JO      = 0x08,
         JS      = 0x09,
         JP      = 0x0A,
+        DBG     = 0x0B,
 
         // Kernel protected instructions
         HLT     = 0x15,

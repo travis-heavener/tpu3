@@ -184,6 +184,7 @@ def assemble_file(fname: str) -> None:
                     case "jmp" | "jz" | "jnz" \
                         | "jc" | "jnc" | "jo" | "jno" \
                         | "js" | "jns" | "jp" | "jnp":  assembleJMPLike(inst, args, text, labels_to_replace)
+                    case "dbg":                         text.append(Inst.DBG)
                     case "hlt":                         text.append(Inst.HLT)
                     case "uret":                        assembleURET(args, text)
                     case "setsyscall":                  assembleSETSYSCALL(args, text, labels_to_replace)

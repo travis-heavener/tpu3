@@ -72,11 +72,6 @@ namespace tpu {
 
                 break;
             }
-            case 5: { // Debug: Dump registers to console
-                tpu.dumpRegs();
-                tpu.setReg32(RegCode::EAX, 0); // Indicate success
-                break;
-            }
             case 9: { // Time: seconds since Epoch in EBX
                 const u32 seconds = static_cast<u32>( std::time(nullptr) );
                 tpu.setReg32(RegCode::EAX, 0); // Indicate success

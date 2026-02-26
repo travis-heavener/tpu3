@@ -86,6 +86,7 @@ Total: 1 byte (8 bits) + arguments if NO modifier fields are present, 2 bytes (1
 | jnp     | rel32 |    -- |   0x0A |   2 |   Rel. (0) | If the parity flag (PF) is clear, moves the IP to a new memory address.             |
 | jnp     |  addr |    -- |   0x0A |   2 |   Abs. (1) | If the parity flag (PF) is clear, moves the IP to a new memory address.             |
 | jnp     | reg32 |    -- |   0x0A |   3 |         -- | If the parity flag (PF) is clear, moves the IP to a memory address from a reg32.    |
+| dbg     |    -- |    -- |   0x0B |  -- |         -- | Dumps all current register information from the TPU to the emulator host terminal.  |
 
 ## Kernel Protected Instructions
 | Inst.      | Op. A | Op. B | OpCode | MOD | Description                                                                         |

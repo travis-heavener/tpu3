@@ -36,7 +36,17 @@ section data
     strz CMD_HELP_MSG " - debug: dumps TPU info to terminal\n - exit: exits the program\n - help: shows this menu\n"
     strz CMD_DEBUG "debug"
 
+    strz test "922"
+
 section text
+    _start:
+        ; Invoke CLI
+        call cli
+
+        ; Kill the TPU
+        mov EAX, 22
+        syscall
+
     cli:
         pushdw RP       ; Save RP
 
@@ -77,9 +87,8 @@ section text
             mov EAX, CMD_DEBUG
             call strcmp
             jnz __cli_debug_end
-            mov EAX, 5         ; Debug() syscall
-            syscall
-            jmp __cli_loop     ; Reiterate
+            dbg                 ; Dump debug info
+            jmp __cli_loop      ; Reiterate
             __cli_debug_end:
 
             ; Base case, no match
@@ -99,10 +108,3 @@ section text
             popdw RP        ; Restore RP
             ret
 
-    _start:
-        ; Invoke CLI
-        call cli
-
-        ; Kill the TPU
-        mov EAX, 22
-        syscall
