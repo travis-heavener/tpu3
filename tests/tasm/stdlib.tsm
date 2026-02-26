@@ -30,3 +30,40 @@ section text
             popdw EBX               ; Restore EBX
             popdw EDX               ; Restore EDX
             ret
+
+        ; Zeroes out a block of memory
+        ; Arguments:
+        ;   ESI: pointer to memory to zero
+        ;   EAX: size of memory block
+        ; Modifies:
+        ;   none
+        ; Returns:
+        ;   none
+        memzero:
+            push BL             ; Save BL
+            pushdw ECX          ; Save ECX
+            pushdw EDX          ; Save EDX
+
+            mov BL, 0           ; Const zero
+            mov ECX, 0          ; Iterator
+            mov EDX, ESI        ; EDX = ESI
+
+            __memzero_loop:
+                ; Check loop condition
+                cmp EAX, ECX
+                jz __memzero_end
+
+                ; Otherwise, zero the byte
+                sb BL, EDX
+
+                ; Increment
+                add ECX, 1
+                add EDX, 1
+                jmp __memzero_loop
+
+            __memzero_end:
+                popdw EDX           ; Restore EDX
+                popdw ECX           ; Restore ECX
+                pop BL              ; Restore BL
+                ret
+

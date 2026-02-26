@@ -22,49 +22,65 @@ section kernel
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 section data
-    strz USERNAME_PROMPT "Enter username: "
-
-    strz WELCOME_MSG "Welcome to TPUOS, "
+    strz PROMPT  "root@tpu-os$ "
     strz NEWLINE "\n"
 
-    ; Create space for username
-    u32 usernameLen 63
-    space username 64 ; n zeroes
+    ; Buffer for user commands
+    space buf  2048
+    u32 bufLen 2048
+
+    ; User command strings
+    strz CMD_UNKNOWN "Unknown command: "
+    strz CMD_EXIT "exit"
 
 section text
-    toast:
+    cli:
         pushdw RP       ; Save RP
 
-        ; Prompt user for name
-        mov ESI, USERNAME_PROMPT    ; Load welcome message to ESI
-        call printz                 ; Print strz USERNAME_PROMPT
+        __cli_loop:
+            ; Clear buffer
+            mov ESI, buf
+            ldw EAX, bufLen
+            call memzero
 
-        ; Read username
-        mov EDI, username       ; Specify where to store the string
-        ldw ECX, usernameLen    ; Specify length of buffer
-        call readn              ; Read n bytes from stdin
-        pushdw EAX              ; Save username length
+            ; Write prompt
+            mov ESI, PROMPT
+            call printz
 
-        ; Write welcome message
-        mov ESI, WELCOME_MSG    ; Load welcome message to ESI
-        call printz             ; Print strz WELCOME_MSG
+            ; Read buffer
+            mov EDI, buf
+            mov ECX, bufLen
+            call readn
 
-        ; Write username
-        mov ESI, username   ; Load username to ESI
-        popdw ECX           ; Restore username length
-        call printnz        ; Print strz username
+            ;;;;;;;; Check CLI commands ;;;;;;;;
 
-        ; Write newline
-        mov ESI, NEWLINE    ; Load newline to ESI
-        mov ECX, 1          ; Length = 1
-        call printnz        ; Print strz WELCOME_MSG
+            mov ESI, buf        ; Load buf to ESI
 
-        popdw RP        ; Restore RP
-        ret
+            ; CMD: exit
+            mov EAX, CMD_EXIT
+            call strcmp
+            jz __cli_exit
+
+            ; Base case, no match
+            mov ESI, CMD_UNKNOWN        ; print(CMD_UNKNOWN)
+            call printz
+
+            mov ESI, buf                ; print(buf)
+            call printz
+
+            mov ESI, NEWLINE            ; print(NEWLINE)
+            mov ECX, 1
+            call printnz
+
+            jmp __cli_loop      ; Restart loop
+
+        __cli_exit:
+            popdw RP        ; Restore RP
+            ret
 
     _start:
-        ; Toast the user
-        call toast
+        ; Invoke CLI
+        call cli
 
         ; Kill the TPU
         mov EAX, 22
