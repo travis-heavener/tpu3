@@ -32,6 +32,9 @@ section data
     ; User command strings
     strz CMD_UNKNOWN "Unknown command: "
     strz CMD_EXIT "exit"
+    strz CMD_HELP "help"
+    strz CMD_HELP_MSG "debug: dumps TPU info to terminal\nexit: exits the program\nhelp: shows this menu\n"
+    strz CMD_DEBUG "debug"
 
 section text
     cli:
@@ -56,10 +59,28 @@ section text
 
             mov ESI, buf        ; Load buf to ESI
 
-            ; CMD: exit
+            ;;; CMD: exit ;;;
             mov EAX, CMD_EXIT
             call strcmp
             jz __cli_exit
+
+            ;;; CMD: help ;;;
+            mov EAX, CMD_HELP
+            call strcmp
+            jnz __cli_help_end
+            mov ESI, CMD_HELP_MSG ; Show help message
+            call printz           ; Print help message
+            jmp __cli_loop        ; Reiterate
+            __cli_help_end:
+
+            ;;; CMD: debug ;;;
+            mov EAX, CMD_DEBUG
+            call strcmp
+            jnz __cli_debug_end
+            mov EAX, 5         ; Debug() syscall
+            syscall
+            jmp __cli_loop     ; Reiterate
+            __cli_debug_end:
 
             ; Base case, no match
             mov ESI, CMD_UNKNOWN        ; print(CMD_UNKNOWN)
