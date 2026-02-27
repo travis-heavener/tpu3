@@ -162,3 +162,111 @@ section text
             popdw RP
             ret
 
+    ; Trims whitespace off both ends in place of a strz by calling rtrimstr then ltrimstr
+    ; Arguments:
+    ;   ESI: pointer to the strz
+    ; Modifies:
+    ;   ESI
+    ; Returns:
+    ;   ESI: pointer to the trimmed strz
+    trimstr:
+        pushdw RP       ; Save RP
+        pushdw EDI      ; Save EDI
+        call rtrimstr   ; Right-trim, modifies ESI in place
+        call ltrimstr   ; Left-trim, sets EDI
+        mov ESI, EDI    ; Move new ptr (EDI) to ESI
+        popdw EDI       ; Restore EDI
+        popdw RP        ; Restore RP
+        ret
+
+    ; Trims whitespace off the left end of a strz by moving the pointer
+    ; Arguments:
+    ;   ESI: pointer to the strz
+    ; Modifies:
+    ;   EDI
+    ; Returns:
+    ;   EDI: pointer to the new strz (shifted down from ESI)
+    ltrimstr:
+        ; Save regs
+        pushdw RP
+        pushdw EAX
+        push BL
+        pushdw EDX
+
+        ; Position EDI to start of string
+        mov EDI, ESI    ; EDI = ESI
+        call strlen     ; strlen(ESI)
+        mov EDX, EAX    ; EDX = strlen(ESI)
+
+        ; while EDX > ESI
+        __ltrimstr_loop:
+            ; Check loop condition
+            mov EAX, ESI        ; EAX = ESI
+            add EAX, EDX        ; EAX = ESI + strlen
+            cmp EAX, EDI        ; Check EAX - EDI
+            jz __ltrimstr_end   ; EDI == ESI + strlen (at end of string)
+
+            xor EAX, EAX        ; Zero EAX
+            lb AL, EDI          ; AL = *EDI
+            call isspace        ; isspace(AL)
+            cmp EAX, 0          ; Check isspace(AL) == 0
+            jz __ltrimstr_end   ; Not a space
+
+            add EDI, 1          ; Increment EDI
+            jmp __ltrimstr_loop ; Reiterate
+
+        __ltrimstr_end:
+            ; Restore regs
+            popdw EDX
+            pop BL
+            popdw EAX
+            popdw RP
+            ret
+
+    ; Trims whitespace off the right end of a strz in place
+    ; Arguments:
+    ;   ESI: pointer to the strz
+    ; Modifies:
+    ;   none
+    ; Returns:
+    ;   none
+    rtrimstr:
+        ; Save regs
+        pushdw RP
+        pushdw EAX
+        push BL
+        pushdw EDX
+
+        ; Position EDX to end of string
+        mov EDX, ESI    ; EDX = ESI
+        call strlen     ; strlen(ESI)
+        add EDX, EAX    ; EDX += strlen(ESI)
+        sub EDX, 1      ; EDX -= 1
+
+        ; while EDX > ESI
+        __rtrimstr_loop:
+            ; Check loop condition
+            cmp EDX, ESI        ; Check EDX - ESI
+            jc __rtrimstr_end   ; EDX < ESI
+
+            xor EAX, EAX        ; Zero EAX
+            lb AL, EDX          ; AL = *EDX
+            call isspace        ; isspace(AL)
+            cmp EAX, 0          ; Check isspace(AL) == 0
+            jz __rtrimstr_end   ; Not a space
+
+            sub EDX, 1          ; Decrement EDX
+            jmp __rtrimstr_loop ; Reiterate
+
+        __rtrimstr_end:
+            ; Put \0 at end of string
+            mov BL, 0   ; BL = 0
+            add EDX, 1  ; EDX += 1
+            sb BL, EDX  ; *(EDX + 1) = 0
+
+            ; Restore regs
+            popdw EDX
+            pop BL
+            popdw EAX
+            popdw RP
+            ret

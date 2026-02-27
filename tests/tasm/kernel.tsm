@@ -36,8 +36,6 @@ section data
     strz CMD_HELP_MSG " - debug: dumps TPU info to terminal\n - exit: exits the program\n - help: shows this menu\n"
     strz CMD_DEBUG "debug"
 
-    strz test "922"
-
 section text
     _start:
         ; Invoke CLI
@@ -46,6 +44,15 @@ section text
         ; Kill the TPU
         mov EAX, 22
         syscall
+
+    ; Returns in EAX the number of args for a given command buffer
+    get_argc:
+        pushdw RP
+
+        ; Count spaces
+
+        popdw RP
+        ret
 
     cli:
         pushdw RP       ; Save RP
@@ -65,9 +72,11 @@ section text
             mov ECX, bufLen
             call readn
 
-            ;;;;;;;; Check CLI commands ;;;;;;;;
+            ; Trim whitespace off the buffer
+            mov ESI, buf    ; Load buf to ESI
+            call trimstr    ; trimstr(buf)
 
-            mov ESI, buf        ; Load buf to ESI
+            ;;;;;;;; Check CLI commands ;;;;;;;;
 
             ;;; CMD: exit ;;;
             mov EAX, CMD_EXIT
@@ -94,10 +103,8 @@ section text
             ; Base case, no match
             mov ESI, CMD_UNKNOWN        ; print(CMD_UNKNOWN)
             call printz
-
             mov ESI, buf                ; print(buf)
             call printz
-
             mov ESI, NEWLINE            ; print(NEWLINE)
             mov ECX, 1
             call printnz
