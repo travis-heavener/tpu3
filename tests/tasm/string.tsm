@@ -87,6 +87,31 @@ section text
             mov EAX, 0
             ret
 
+    ; Determines whether or not a character is a numeric value
+    ; Arguments:
+    ;   EAX: the character to check
+    ; Modifies:
+    ;   EAX
+    ; Returns:
+    ;   EAX: 0 if non-numeric, 1 if numeric
+    isspace:
+        cmp EAX, 32         ; 32 == ' '
+        jz __isspace_true   ; EAX == ' '
+
+        cmp EAX, 9          ; ASCII 9 - 13
+        jc __isspace_false  ; EAX < 9
+
+        cmp EAX, 14         ; 13 + 1 == 14
+        jnc __isspace_false ; EAX > 13
+
+        __isspace_true:
+            mov EAX, 1
+            ret
+
+        __isspace_false:
+            mov EAX, 0
+            ret
+
     ; Parses a strz to an unsigned integral value (u32)
     ; Arguments:
     ;   ESI: pointer to a null-terminated string
