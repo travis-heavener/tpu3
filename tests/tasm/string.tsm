@@ -1,5 +1,6 @@
 section text
 
+    ; Determines the length of a strz string
     ; Arguments:
     ;   ESI: pointer to string
     ; Modifies:
@@ -25,6 +26,7 @@ section text
             pop BL              ; Restore BL
             ret                 ; Return
 
+    ; Compares two strings and sets EAX according (see below spec)
     ; Arguments:
     ;   ESI: pointer to string A
     ;   EAX: pointer to string B
