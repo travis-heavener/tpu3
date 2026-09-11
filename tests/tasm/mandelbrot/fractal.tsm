@@ -1,0 +1,256 @@
+; TPU3 Fractal Lab
+; A self-contained Mandelbrot renderer for the emulated TPU3 CPU.
+; Coordinates use signed 16-bit Q8.8 fixed-point arithmetic.
+;
+; Build/run:
+;   bin/tasm tpu3_fractal_lab.tsm tpu3_fractal_lab.tpu
+;   bin/tpu tpu3_fractal_lab.tpu
+
+section kernel
+    syscall_22:
+        mov EAX, 0
+        hlt
+
+    _kernel_start:
+        setsyscall 22, syscall_22
+        uret @0x00040000, @0x0D000000
+
+section data
+    strz TITLE "\n=== TPU3 FRACTAL LAB ===\n"
+    strz INFO  "Mandelbrot rendered in TASM on the emulated 32-bit TPU3\n"
+    strz VIEW1 "\n[1] FULL SET\n"
+    strz VIEW2 "\n[2] SEAHORSE ZOOM\n"
+    strz VIEW3 "\n[3] DEEP ZOOM\n"
+    strz DONE  "\nDone. Every pixel above was computed by the TPU emulator.\n"
+
+    ; Iteration 0..24 maps to a progressively denser character.
+    strz PALETTE " .,:;irsXA253hMHGS#9B&@8$"
+
+    ; 64 columns x 24 rows, including one newline byte per row.
+    space FRAME 1560
+    space PRODUCT 8
+
+    ; Q8.8 rendering state.
+    s16 START_CX +0
+    s16 X_STEP +0
+    s16 START_CY +0
+    s16 Y_STEP +0
+    s16 CUR_CY +0
+    s16 ZX2      +0
+    s16 ZY2      +0
+    s16 NEW_ZX +0
+    s16 NEW_ZY +0
+    s16 ZX_CUR +0
+    s16 ZY_CUR +0
+    u32 X_COUNT 0
+    u32 Y_COUNT 0
+
+section text
+    _start:
+        mov ESI, TITLE
+        call printz_local
+        mov ESI, INFO
+        call printz_local
+
+        ; Full Mandelbrot: x=-2.00..~0.95, y=-1.125..~1.03
+        mov AX, -512
+        mov BX, 12
+        mov CX, -288
+        mov DX, 24
+        call render
+
+        mov ESI, VIEW2
+        call printz_local
+
+        ; Zoom around the classic seahorse region.
+        mov AX, -320
+        mov BX, 4
+        mov CX, -64
+        mov DX, 8
+        call render
+
+        mov ESI, VIEW3
+        call printz_local
+
+        ; A deeper zoom with a much finer sampling step.
+        mov AX, -220
+        mov BX, 1
+        mov CX, -80
+        mov DX, 1
+        call render
+
+        mov ESI, DONE
+        call printz_local
+
+        mov EAX, 22
+        syscall
+
+    ; Write a null-terminated string to stdout.
+    ; Input: ESI = address of strz.
+    printz_local:
+        pushdw RP
+        mov EDI, ESI
+        mov ECX, 0
+
+    printz_len_loop:
+        lb AL, EDI
+        cmp AL, 0
+        jz printz_len_done
+        add EDI, 1
+        add ECX, 1
+        jmp printz_len_loop
+
+    printz_len_done:
+        mov EBX, 1
+        mov EAX, 1
+        syscall
+        popdw RP
+        ret
+
+    ; Render one 64x24 Mandelbrot panel.
+    ; Inputs: AX=start x, BX=x step, CX=start y, DX=y step.
+    render:
+        pushdw RP
+
+        sw AX, START_CX
+        sw BX, X_STEP
+        sw CX, START_CY
+        sw DX, Y_STEP
+        sw CX, CUR_CY
+
+        ; Clear output frame.
+        mov ESI, FRAME
+        mov EAX, 0
+        mov ECX, 1560
+    clear_loop:
+        cmp EAX, ECX
+        jz clear_done
+        sb AH, ESI
+        add ESI, 1
+        add EAX, 1
+        jmp clear_loop
+
+    clear_done:
+        mov EDI, FRAME
+        mov EAX, 0
+        sdw EAX, Y_COUNT
+
+    row_loop:
+        ldw EAX, Y_COUNT
+        cmp EAX, 24
+        jz render_done
+
+        lw BP, START_CX
+        lw DX, CUR_CY
+        mov EAX, 0
+        sdw EAX, X_COUNT
+
+    pixel_loop:
+        ldw EAX, X_COUNT
+        cmp EAX, 64
+        jz row_finish
+
+        ; z = 0 + 0i for this pixel.
+        mov AX, 0
+        mov BX, 0
+        sw AX, ZX_CUR
+        sw BX, ZY_CUR
+        mov ECX, 0
+
+    mandel_iter:
+        ; zx^2 -> Q8.8. smul performs signed AX*AX -> EAX.
+        lw AX, ZX_CUR
+        smul AX
+        sdw EAX, PRODUCT
+        mov ESI, PRODUCT
+        add ESI, 1
+        lw AX, ESI
+        sw AX, ZX2
+
+        ; zy^2 -> Q8.8.
+        lw AX, ZY_CUR
+        smul AX
+        sdw EAX, PRODUCT
+        mov ESI, PRODUCT
+        add ESI, 1
+        lw AX, ESI
+        sw AX, ZY2
+
+        ; Escape when |z|^2 >= 4.0 (1024 in Q8.8).
+        lw AX, ZX2
+        lw BX, ZY2
+        add AX, BX
+        cmp AX, 1024
+        jnc pixel_done
+
+        ; new_zx = zx^2 - zy^2 + cx
+        lw AX, ZX2
+        lw BX, ZY2
+        sub AX, BX
+        add AX, BP
+        sw AX, NEW_ZX
+
+        ; new_zy = 2*zx*zy + cy
+        lw AX, ZX_CUR
+        lw BX, ZY_CUR
+        smul BX
+        sdw EAX, PRODUCT
+        mov ESI, PRODUCT
+        add ESI, 1
+        lw AX, ESI
+        add AX, AX
+        add AX, DX
+        sw AX, NEW_ZY
+
+        lw AX, NEW_ZX
+        lw BX, NEW_ZY
+        sw AX, ZX_CUR
+        sw BX, ZY_CUR
+
+        add ECX, 1
+        cmp ECX, 24
+        jz pixel_done
+        jmp mandel_iter
+
+    pixel_done:
+        ; Palette[iteration]
+        mov ESI, PALETTE
+        add ESI, ECX
+        lb AL, ESI
+        sb AL, EDI
+        add EDI, 1
+
+        ; Next real coordinate.
+        lw AX, X_STEP
+        add BP, AX
+
+        ldw EAX, X_COUNT
+        add EAX, 1
+        sdw EAX, X_COUNT
+        jmp pixel_loop
+
+    row_finish:
+        mov AL, 10
+        sb AL, EDI
+        add EDI, 1
+
+        ; Next imaginary coordinate.
+        lw AX, Y_STEP
+        add DX, AX
+        sw DX, CUR_CY
+
+        ldw EAX, Y_COUNT
+        add EAX, 1
+        sdw EAX, Y_COUNT
+        jmp row_loop
+
+    render_done:
+        ; Write the complete 64x24 panel in one syscall.
+        mov ESI, FRAME
+        mov ECX, 1560
+        mov EBX, 1
+        mov EAX, 1
+        syscall
+
+        popdw RP
+        ret

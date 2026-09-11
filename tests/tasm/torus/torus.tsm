@@ -1,0 +1,538 @@
+; TPU3 SPINNING DONUT
+; A terminal-modeled 3D torus animation written for the custom TPU3 ISA.
+; No x86 instructions or host-side rendering are used.
+;
+; Build/run:
+;   bin/tasm tpu3_donut.tsm tpu3_donut.tpu
+;   bin/tpu tpu3_donut.tpu
+;
+; The torus is generated parametrically from 32-entry sine/cosine tables.
+; Coordinates are Q8.8 fixed point. The visible surface is resolved with
+; a byte-sized software Z-buffer, then shaded with a depth palette.
+
+section kernel
+    syscall_22:
+        mov EAX, 0
+        hlt
+
+    _kernel_start:
+        setsyscall 22, syscall_22
+        uret @0x00040000, @0x0D000000
+
+section data
+    strz TITLE "TPU3 3D TORUS // CUSTOM ISA\n"
+    strz INFO "Generating geometry on the emulated CPU...\n"
+
+    ; ANSI escape: ESC [2J [H = clear screen + cursor home.
+    u8 ESC 27
+    str CLEAR_TAIL "[2J[H"
+    strz FINAL "\nTPU3 TORUS COMPLETE.\n"
+    strz PALETTE " .,:;irsXA253hMHGS#9B&@8$"
+
+    ; 32 samples around a circle, Q8.8.
+    s16 TABLE_SIN +0
+    s16 SIN01 +50
+    s16 SIN02 +98
+    s16 SIN03 +142
+    s16 SIN04 +181
+    s16 SIN05 +213
+    s16 SIN06 +237
+    s16 SIN07 +251
+    s16 SIN08 +256
+    s16 SIN09 +251
+    s16 SIN10 +237
+    s16 SIN11 +213
+    s16 SIN12 +181
+    s16 SIN13 +142
+    s16 SIN14 +98
+    s16 SIN15 +50
+    s16 SIN16 +0
+    s16 SIN17 -50
+    s16 SIN18 -98
+    s16 SIN19 -142
+    s16 SIN20 -181
+    s16 SIN21 -213
+    s16 SIN22 -237
+    s16 SIN23 -251
+    s16 SIN24 -256
+    s16 SIN25 -251
+    s16 SIN26 -237
+    s16 SIN27 -213
+    s16 SIN28 -181
+    s16 SIN29 -142
+    s16 SIN30 -98
+    s16 SIN31 -50
+    s16 COS_TABLE +256
+    s16 COS01 +251
+    s16 COS02 +237
+    s16 COS03 +213
+    s16 COS04 +181
+    s16 COS05 +142
+    s16 COS06 +98
+    s16 COS07 +50
+    s16 COS08 +0
+    s16 COS09 -50
+    s16 COS10 -98
+    s16 COS11 -142
+    s16 COS12 -181
+    s16 COS13 -213
+    s16 COS14 -237
+    s16 COS15 -251
+    s16 COS16 -256
+    s16 COS17 -251
+    s16 COS18 -237
+    s16 COS19 -213
+    s16 COS20 -181
+    s16 COS21 -142
+    s16 COS22 -98
+    s16 COS23 -50
+    s16 COS24 +0
+    s16 COS25 +50
+    s16 COS26 +98
+    s16 COS27 +142
+    s16 COS28 +181
+    s16 COS29 +213
+    s16 COS30 +237
+    s16 COS31 +251
+
+    strz HEADER "\n"
+
+    ; 80x24 terminal frame: 80 characters + newline per row.
+    space FRAME 1944
+    space ZBUF 1944
+
+    u32 START_TIME 0
+    u32 FRAME_NO 0
+    u32 THETA_I 0
+    u32 PHI_I 0
+    u32 ANGLE_I 0
+
+    s16 THETA_SIN +0
+    s16 COS_T +0
+    s16 ROT_SIN_A +0
+    s16 COS_A +0
+    s16 TORUS_R +0
+    s16 X0 +0
+    s16 Y0 +0
+    s16 Z0 +0
+    s16 X1 +0
+    s16 Z1 +0
+    s16 SX +0
+    s16 SY +0
+    s16 SZ +0
+    s16 DEPTH +0
+    s16 XPIX +0
+    s16 YPIX +0
+    space PRODUCT 8
+    u32 FRAME_BASE 0
+    u32 ZBASE 0
+    u32 DELAY 0
+    u32 OLDZ 0
+    u32 CHAR_INDEX 0
+    u32 TARGET_TIME 0
+
+section text
+    _start:
+        ; Header, then capture the wall-clock start time (syscall 9).
+        mov ESI, TITLE
+        call printz
+        mov ESI, INFO
+        call printz
+
+        mov EAX, 9
+        syscall
+        sdw EBX, START_TIME
+
+    ; Main animation loop. The time syscall has one-second resolution;
+    ; TARGET_TIME is therefore a precise 10-second wall-clock window
+    ; within the resolution the TPU3 syscall exposes.
+    frame_loop:
+        mov EAX, 9
+        syscall
+        ldw EAX, START_TIME
+        add EAX, 11
+        cmp EBX, EAX
+        jnc animation_done
+
+        call clear_frame
+        call clear_zbuf
+        call render_donut
+
+        ; Display the frame.
+        mov ESI, ESC
+        mov ECX, 7
+        mov EBX, 1
+        mov EAX, 1
+        syscall
+
+        mov ESI, FRAME
+        mov ECX, 1944
+        mov EBX, 1
+        mov EAX, 1
+        syscall
+
+        ; Advance one angular sample for a smooth rotation.
+        ldw EAX, ANGLE_I
+        add EAX, 1
+        cmp EAX, 32
+        jnz angle_stored
+        mov EAX, 0
+    angle_stored:
+        sdw EAX, ANGLE_I
+
+        ; Busy-wait pacing. This keeps the emulator from flooding the host
+        ; terminal while remaining entirely inside the TPU instruction set.
+        mov EAX, 0
+        sdw EAX, DELAY
+    delay_loop:
+        ldw EAX, DELAY
+        add EAX, 1
+        sdw EAX, DELAY
+        cmp EAX, 350000
+        jnz delay_loop
+
+        jmp frame_loop
+
+    animation_done:
+        mov ESI, FINAL
+        call printz
+        mov EAX, 22
+        syscall
+
+    ; ---------------------------------------------------------------
+    ; printz: write a zero-terminated string.
+    ; ---------------------------------------------------------------
+    printz:
+        pushdw RP
+        mov EDI, ESI
+        mov ECX, 0
+    printz_len:
+        lb AL, EDI
+        cmp AL, 0
+        jz printz_write
+        add EDI, 1
+        add ECX, 1
+        jmp printz_len
+    printz_write:
+        mov EBX, 1
+        mov EAX, 1
+        syscall
+        popdw RP
+        ret
+
+    ; ---------------------------------------------------------------
+    ; clear_frame: spaces plus newline at the end of each row.
+    ; ---------------------------------------------------------------
+    clear_frame:
+        pushdw RP
+        mov EDI, FRAME
+        mov EDX, 0
+    clear_row:
+        mov ECX, 0
+    clear_col:
+        mov AL, 32
+        sb AL, EDI
+        add EDI, 1
+        add ECX, 1
+        cmp ECX, 80
+        jnz clear_col
+        mov AL, 10
+        sb AL, EDI
+        add EDI, 1
+        add EDX, 1
+        cmp EDX, 24
+        jnz clear_row
+        popdw RP
+        ret
+
+    ; Clear the Z-buffer to zero. A candidate depth is stored as a small
+    ; positive integer, so greater depth wins.
+    clear_zbuf:
+        pushdw RP
+        mov EDI, ZBUF
+        mov ECX, 0
+    clear_z_loop:
+        mov AL, 0
+        sb AL, EDI
+        add EDI, 1
+        add ECX, 1
+        cmp ECX, 1944
+        jnz clear_z_loop
+        popdw RP
+        ret
+
+    ; ---------------------------------------------------------------
+    ; render_donut
+    ;
+    ; Parametric torus:
+    ;   r = R1 + R2*cos(theta)
+    ;   x = r*cos(phi)
+    ;   y = r*sin(phi)
+    ;   z = R2*sin(theta)
+    ;
+    ; Then rotate around Y by ANGLE_I. The result is projected
+    ; orthographically onto the terminal. The non-square character
+    ; aspect is compensated by a wider X scale.
+    ; ---------------------------------------------------------------
+    render_donut:
+        pushdw RP
+
+        ; Load dynamic rotation from the lookup tables.
+        ldw EAX, ANGLE_I
+        ; ANGLE_I is 0..31; convert entry index to byte offset.
+        add EAX, EAX
+        sdw EAX, FRAME_BASE
+        mov ESI, TABLE_SIN
+        add ESI, EAX
+        lw AX, ESI
+        sw AX, ROT_SIN_A
+        ldw EAX, FRAME_BASE
+        mov ESI, COS_TABLE
+        add ESI, EAX
+        lw AX, ESI
+        sw AX, COS_A
+
+        ; theta = 0..31, phi = 0..31.
+        mov EAX, 0
+        sdw EAX, THETA_I
+
+    theta_loop:
+        ldw EAX, THETA_I
+        cmp EAX, 32
+        jz donut_done
+
+        ; theta lookup.
+        add EAX, EAX
+        sdw EAX, FRAME_BASE
+        mov ESI, TABLE_SIN
+        add ESI, EAX
+        lw AX, ESI
+        sw AX, THETA_SIN
+        ldw EAX, FRAME_BASE
+        mov ESI, COS_TABLE
+        add ESI, EAX
+        lw AX, ESI
+        sw AX, COS_T
+
+        ; R = 8 + 3*cos(theta), Q8.8.
+        lw AX, COS_T
+        mov BX, 3
+        smul BX
+        ; Product is Q16.16. Add 8.0 in Q16.16 before extracting
+        ; the Q8.8 result, preserving the torus radius fraction.
+        add EAX, 524288
+        sdw EAX, PRODUCT
+        mov ESI, PRODUCT
+        add ESI, 1
+        lw AX, ESI
+        sw AX, TORUS_R
+
+        mov EAX, 0
+        sdw EAX, PHI_I
+
+        ; Base pointers walk through the two trig tables.
+        mov ESI, TABLE_SIN
+        mov EDI, COS_TABLE
+
+    phi_loop:
+        ldw EAX, PHI_I
+        cmp EAX, 32
+        jz theta_next
+
+        ; phi sin/cos.
+        lw AX, ESI
+        sw AX, X0
+        lw AX, EDI
+        sw AX, Y0
+
+        ; x = R*cos(phi), z = R2*sin(theta), y = R*sin(phi)
+        lw AX, TORUS_R
+        lw BX, X0
+        smul BX
+        sdw EAX, PRODUCT
+        mov EAX, PRODUCT
+        add EAX, 1
+        mov ECX, EAX
+        lw AX, ECX
+        sw AX, X0
+
+        lw AX, TORUS_R
+        lw BX, Y0
+        smul BX
+        sdw EAX, PRODUCT
+        mov EAX, PRODUCT
+        add EAX, 1
+        mov ECX, EAX
+        lw AX, ECX
+        sw AX, Y0
+
+        lw AX, THETA_SIN
+        mov BX, 3
+        smul BX
+        sdw EAX, PRODUCT
+        mov EAX, PRODUCT
+        add EAX, 1
+        lw AX, EAX
+        sw AX, Z0
+
+        ; x1 = x*cosA + z*sinA
+        lw AX, X0
+        lw BX, COS_A
+        smul BX
+        sdw EAX, PRODUCT
+        mov EAX, PRODUCT
+        add EAX, 1
+        lw AX, EAX
+        sw AX, X1
+
+        lw AX, Z0
+        lw BX, ROT_SIN_A
+        smul BX
+        sdw EAX, PRODUCT
+        mov EAX, PRODUCT
+        add EAX, 1
+        lw AX, EAX
+        lw BX, X1
+        add AX, BX
+        sw AX, X1
+
+        ; z1 = -x*sinA + z*cosA
+        lw AX, X0
+        lw BX, ROT_SIN_A
+        smul BX
+        sdw EAX, PRODUCT
+        mov EAX, PRODUCT
+        add EAX, 1
+        lw AX, EAX
+        mov BX, 0
+        sub BX, AX
+        sw BX, Z1
+
+        lw AX, Z0
+        lw BX, COS_A
+        smul BX
+        sdw EAX, PRODUCT
+        mov EAX, PRODUCT
+        add EAX, 1
+        lw AX, EAX
+        lw BX, Z1
+        add AX, BX
+        sw AX, Z1
+
+        ; Screen X = 40 + 3*x1.
+        lw AX, X1
+        mov BX, 3
+        smul BX
+        sdw EAX, PRODUCT
+        mov EAX, PRODUCT
+        add EAX, 1
+        lw AX, EAX
+        add AX, 40
+        sw AX, XPIX
+
+        ; Screen Y = 12 - integer(y). Y0 is Q8.8; extract its
+        ; signed integer part with a byte load plus explicit sign extension.
+        mov ESI, Y0
+        add ESI, 1
+        lb AL, ESI
+        scmp AL, +0
+        js y_negative
+        mov AH, 0
+        jmp y_ready
+    y_negative:
+        mov AH, 255
+    y_ready:
+        mov BX, 0
+        sub BX, AX
+        add BX, 12
+        sw BX, YPIX
+
+        ; Screen bounds.
+        lw AX, XPIX
+        scmp AX, +0
+        js next_point
+        cmp AX, 80
+        jnc next_point
+        lw AX, YPIX
+        scmp AX, +0
+        js next_point
+        cmp AX, 24
+        jnc next_point
+
+        ; PRODUCT = y*80 + x.
+        lw AX, YPIX
+        mov BX, 80
+        smul BX
+        mov EDI, FRAME
+        add EDI, EAX
+        mov EAX, 0
+        lw AX, XPIX
+        mov ECX, 0
+        mov CX, AX
+        add EDI, ECX
+
+        ; Candidate depth = z + 12, reduced to an integer sample.
+        lw AX, Z1
+        add AX, 3072
+        sw AX, DEPTH
+        mov ESI, DEPTH
+        add ESI, 1
+        lw AX, ESI
+        mov CL, AL
+
+        ; Z address = ZBUF + offset; compare candidate against old depth.
+        ; Compute y*80 first, then load the Z-buffer base so the 16-bit
+        ; multiply constant cannot clobber the base pointer.
+        lw AX, YPIX
+        mov BX, 80
+        smul BX
+        mov EBX, ZBUF
+        add EBX, EAX
+        lw AX, XPIX
+        mov EDX, 0
+        mov DX, AX
+        add EBX, EDX
+        lb AL, EBX
+        cmp AL, CL
+        jnc next_point
+
+        sb CL, EBX
+
+        ; Palette[depth].
+        mov ESI, PALETTE
+        mov EAX, 0
+        mov AL, CL
+        add ESI, EAX
+        lb AL, ESI
+        sb AL, EDI
+
+    next_point:
+        add ESI, 2
+        add EDI, 2
+        ; EDI is no longer the frame pointer after the palette load; restore
+        ; the trig cos pointer from the dedicated table pointer in memory by
+        ; recomputing it from PHI_I.
+        ldw EAX, PHI_I
+        add EAX, 1
+        add EAX, EAX
+        sdw EAX, FRAME_BASE
+        mov EDX, COS_TABLE
+        add EDX, EAX
+        mov EDI, EDX
+        mov ESI, TABLE_SIN
+        add ESI, EAX
+
+        ldw EAX, PHI_I
+        add EAX, 1
+        sdw EAX, PHI_I
+        jmp phi_loop
+
+    theta_next:
+        ldw EAX, THETA_I
+        add EAX, 1
+        sdw EAX, THETA_I
+        jmp theta_loop
+
+    donut_done:
+        popdw RP
+        ret
