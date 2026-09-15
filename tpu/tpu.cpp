@@ -1,4 +1,5 @@
-#include <cstdio>
+#include <bitset>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 
@@ -241,33 +242,39 @@ namespace tpu {
             FLAGS.word &= ~(1u << f);
     }
 
-    // Debug dump all registers to stdout
     void TPU::dumpRegs() const {
-        // 32-bit regs
-        std::printf("-------------------------=| REG DUMP |=-------------------------\n");
-        std::printf("EAX: 0x%08x    AX: 0x%04x    AH: 0x%02x    AL: 0x%02x\n", EAX.dword, EAX.lword, EAX.lreg16.hbyte, EAX.lreg16.lbyte);
-        std::printf("EBX: 0x%08x    BX: 0x%04x    BH: 0x%02x    BL: 0x%02x\n", EBX.dword, EBX.lword, EBX.lreg16.hbyte, EBX.lreg16.lbyte);
-        std::printf("ECX: 0x%08x    CX: 0x%04x    CH: 0x%02x    CL: 0x%02x\n", ECX.dword, ECX.lword, ECX.lreg16.hbyte, ECX.lreg16.lbyte);
-        std::printf("EDX: 0x%08x    DX: 0x%04x    DH: 0x%02x    DL: 0x%02x\n", EDX.dword, EDX.lword, EDX.lreg16.hbyte, EDX.lreg16.lbyte);
+        std::cout << "================================ [ REGISTER DUMP ] ================================\n";
+        
+        // General Purpose Registers (32-bit, 16-bit, 8-bit Hi/Lo breakdown)
+        std::cout << "  GPRs:\n";
+        std::printf("    EAX: 0x%08X  │  AX: 0x%04X  │  AH: 0x%02X  │  AL: 0x%02X\n", EAX.dword, EAX.lword, EAX.lreg16.hbyte, EAX.lreg16.lbyte);
+        std::printf("    EBX: 0x%08X  │  BX: 0x%04X  │  BH: 0x%02X  │  BL: 0x%02X\n", EBX.dword, EBX.lword, EBX.lreg16.hbyte, EBX.lreg16.lbyte);
+        std::printf("    ECX: 0x%08X  │  CX: 0x%04X  │  CH: 0x%02X  │  CL: 0x%02X\n", ECX.dword, ECX.lword, ECX.lreg16.hbyte, ECX.lreg16.lbyte);
+        std::printf("    EDX: 0x%08X  │  DX: 0x%04X  │  DH: 0x%02X  │  DL: 0x%02X\n", EDX.dword, EDX.lword, EDX.lreg16.hbyte, EDX.lreg16.lbyte);
 
-        std::printf("IP:  0x%08x\n", IP.dword);
-        std::printf("RP:  0x%08x\n", RP.dword);
-        std::printf("SRP: 0x%08x\n", SRP.dword);
-        std::printf("KSP: 0x%08x\n", KSP.dword);
-        std::printf("ESP: 0x%08x    SP: 0x%04x\n", ESP.dword, ESP.lword);
-        std::printf("EBP: 0x%08x    BP: 0x%04x\n", EBP.dword, EBP.lword);
-        std::printf("ESI: 0x%08x    SI: 0x%04x\n", ESI.dword, ESI.lword);
-        std::printf("EDI: 0x%08x    DI: 0x%04x\n", EDI.dword, EDI.lword);
+        // Index & Base Registers
+        std::cout << "  Indices:\n";
+        std::printf("    ESP: 0x%08X (SP: 0x%04X)  │  ESI: 0x%08X (SI: 0x%04X)\n", ESP.dword, ESP.lword, ESI.dword, ESI.lword);
+        std::printf("    EBP: 0x%08X (BP: 0x%04X)  │  EDI: 0x%08X (DI: 0x%04X)\n", EBP.dword, EBP.lword, EDI.dword, EDI.lword);
 
-        // 16-bit regs
-        std::printf("FLAGS: 0b%016b\n", FLAGS.word);
-        std::printf(
-            "  CARRY: %d  PARITY: %d  ZERO: %d  SIGN: %d  OVERFLOW: %d\n",
-            isFlag(FLAG_CARRY), isFlag(FLAG_PARITY), isFlag(FLAG_ZERO), isFlag(FLAG_SIGN), isFlag(FLAG_OVERFLOW)
+        // Control & Special Registers
+        std::cout << "  Control & Stacks:\n";
+        std::printf("    IP:  0x%08X  │  RP:  0x%08X\n", IP.dword, RP.dword);
+        std::printf("    KSP: 0x%08X  │  SRP: 0x%08X\n", KSP.dword, SRP.dword);
+
+        // Flags & Execution Status
+        std::cout << "  Status:\n";
+        std::cout << "    FLAGS: 0b" << std::bitset<16>(FLAGS.word) << "\n";
+        std::printf("    CF:%d  PF:%d  ZF:%d  SF:%d  OF:%d  │  MODE: %s\n",
+            isFlag(FLAG_CARRY),
+            isFlag(FLAG_PARITY),
+            isFlag(FLAG_ZERO),
+            isFlag(FLAG_SIGN),
+            isFlag(FLAG_OVERFLOW),
+            (currentMode == TPUMode::USER ? "USER" : "KERNEL")
         );
 
-        // 8-bit regs/flags
-        std::printf("MODE: %s\n", (currentMode == TPUMode::USER ? "User" : "Kernel"));
+        std::cout << "===================================================================================\n" << std::endl;
     }
 
 }
